@@ -155,26 +155,24 @@ class BountyShow extends Component {
           />
 
           <Divider />
-            <Header
-              content="Post a new answer"
-              as="h3"
-            />
-            <Form onSubmit={this.onSubmit}>
-              <Form.Group>
-                <Form.Input
-                  placeholder='Answer ID'
-                  value={this.state.newAnswerId}
-                  onChange={e =>
-                    this.setState({ newAnswerId: e.target.value })}/>
-                <Form.Button
-                  disabled={this.state.bountyStage > 0}
-                  content='Submit'
-                  color='green'
-                  loading={this.state.isLoading} />
-              </Form.Group>
-            </Form>
-
-
+          <Header
+            content="Post a new answer"
+            as="h3"
+          />
+          <Form onSubmit={this.onSubmit}>
+            <Form.Group>
+              <Form.Input
+                placeholder='Answer ID'
+                value={this.state.newAnswerId}
+                onChange={e =>
+                  this.setState({ newAnswerId: e.target.value })}/>
+              <Form.Button
+                disabled={this.state.bountyStage > 0}
+                content='Submit'
+                color='green'
+                loading={this.state.isLoading} />
+            </Form.Group>
+          </Form>
           <Dimmer.Dimmable active>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>

@@ -73,6 +73,7 @@ class BountyNew extends Component {
                 this.setState({ bountyValue: e.target.value })}
                   />
                 </Form.Field>
+                OR
                 <Form.TextArea
                   placeholder='Instructions for your bounty...'
                   value={this.state.bountyDescription}

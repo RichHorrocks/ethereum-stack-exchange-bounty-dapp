@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form, Button, Input, Message, Container, Card, Segment, Grid, Header } from 'semantic-ui-react';
+import { Form, Button, Input, Message, Container, Card, Segment, Grid, Header, Dropdown } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import Head from '../../components/Head';
 import { Link, Router } from '../../routes';
@@ -20,6 +20,7 @@ class BountySearch2 extends Component {
       renderQuestion: false,
       userAccount: '',
       networkId: 4, // Default to Rinkeby, but check later anyway.
+      tokens: [],
     };
   }
 
@@ -37,7 +38,7 @@ class BountySearch2 extends Component {
       console.log(err);
     }
 
-    this.setState({ isLoading: false });
+    this.setState({ isLoading: false, renderQuestion: true });
   };
 
   handleClick = async () => {
@@ -66,6 +67,16 @@ class BountySearch2 extends Component {
 
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
+
+    axios
+    .get('https://raw.githubusercontent.com/kvhnuke/etherwallet/mercury/app/scripts/tokens/ethTokens.json')
+    .then(({ data })=> {
+      const newData = data.map(({ address, symbol, decimal, type }) => ({ value: address, text: symbol }));
+      this.setState({ tokens: newData });
+    })
+    .catch((err)=> {
+      console.log(err);
+    });
   }
 
   render() {
@@ -94,6 +105,20 @@ class BountySearch2 extends Component {
                     onChange={e =>
                       this.setState({ questionId: e.target.value })}/>
                 </Form.Field>
+                {this.state.renderQuestion ? (
+                <Card>
+                  <Card.Content>
+                    <Card.Meta>
+                      We found the following question:
+                    </Card.Meta>
+                    <Card.Description>
+                      <a href={this.state.question.link}>
+                        {this.state.question.title}
+                      </a>
+                    </Card.Description>
+                  </Card.Content>
+                </Card>
+              ) : null }
                 <Button
                   content="Find"
                   color="green"
@@ -116,7 +141,9 @@ class BountySearch2 extends Component {
               <Grid.Column>
                 <Form>
                   <Form.Field>
-                    <input
+                    <Input
+                      label="wei"
+                      labelPosition="right"
                       placeholder='Bounty Value'
                       value={this.state.bountyValue}
                       onChange={e =>
@@ -124,11 +151,15 @@ class BountySearch2 extends Component {
                       />
                   </Form.Field>
                 </Form>
+                <p>OR</p>
+                <Dropdown
+                  placeholder='Search for an ERC-20 token here...'
+                  selection
+                  search
+                  options={this.state.tokens}
+                />
               </Grid.Column>
               <Grid.Column>
-                <Message info>
-                  <p>The default unit for bounties is wei</p>
-                </Message>
               </Grid.Column>
             </Grid.Row>
 

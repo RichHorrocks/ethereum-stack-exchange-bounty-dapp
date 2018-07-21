@@ -6,6 +6,7 @@ import { Link, Router } from '../routes';
 import axios from 'axios';
 import web3 from '../getWeb3';
 import bounty from '../contractInstance';
+import QuestionRow from '../components/QuestionRow';
 
 class Dashboard extends Component {
   constructor() {
@@ -70,6 +71,17 @@ class Dashboard extends Component {
     });
   }
 
+  renderRow() {
+    return this.state.userBounties.map((bounty, index) => {
+      return <QuestionRow
+        key={index}
+        id={index}
+        bounty={bounty}
+        userAccount={this.state.userAccount}
+      />;
+    });
+  }
+
   render() {
     const { Header, Row, HeaderCell, Body } = Table;
 
@@ -89,12 +101,14 @@ class Dashboard extends Component {
             <Table>
               <Header>
                 <Row>
-                  <HeaderCell>ID and Link</HeaderCell>
-                  <HeaderCell>Answer Owner</HeaderCell>
+                  <HeaderCell>ID</HeaderCell>
+                  <HeaderCell>Question Title and Link</HeaderCell>
+                  <HeaderCell>Bounty Value</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>
               </Header>
               <Body>
+                {this.renderRow()}
               </Body>
             </Table>
           </Dimmer.Dimmable>
