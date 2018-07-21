@@ -217,6 +217,14 @@ contract SEBounty is Destructible {
         return bounties[_bountyIndex].answers;
     }
 
+    function getAnswerOwners(uint _bountyIndex)
+        public
+        view
+        returns (address [])
+    {
+        return bounties[_bountyIndex].answerOwners;
+    }
+
     function getAnswerCount(uint _bountyIndex)
         public
         view

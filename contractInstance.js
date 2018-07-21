@@ -5,7 +5,8 @@ import contract from 'truffle-contract';
 const SEBountyContract = contract(SEBounty);
 SEBountyContract.setProvider(web3.currentProvider);
 
-const instance = SEBountyContract.at('0x9b5ca0aac06534a38a2c8509a113a9dd57eebf13');
+const instance = SEBountyContract.at('0xa30b7852b1b3cca71907b5148e3e1fb0db1e0c64');
 
-// OLD 0xda350f2c3356b8dbda3b42130f6893ae8aaadfc7
+// NEWER 0x9b5ca0aac06534a38a2c8509a113a9dd57eebf13
+// OLDER 0xda350f2c3356b8dbda3b42130f6893ae8aaadfc7
 export default instance;

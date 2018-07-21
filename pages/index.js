@@ -9,8 +9,26 @@ import {
 import Layout from '../components/Layout';
 import Status from '../components/Status';
 import { Link } from '../routes';
+import web3 from '../getWeb3';
 
 class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      userAccount: '',
+      networkId: 4, // Default to Rinkeby, but check later anyway.
+    };
+  }
+
+  async componentDidMount() {
+    // Get the brower users's account details.
+    const accounts = await web3.eth.getAccounts();
+    this.setState({ userAccount: accounts[0] });
+
+    const networkId = await web3.eth.net.getId();
+    this.setState({ networkId });
+  }
+
   render() {
     return (
       <Layout>
@@ -64,7 +82,10 @@ class App extends Component {
               </Link>
             </Grid.Column>
           </Grid>
-          <Status />
+          <Status
+            userAccount={this.state.userAccount}
+            networkId={this.state.networkId}
+          />
         </Segment>
       </Layout>
     );
