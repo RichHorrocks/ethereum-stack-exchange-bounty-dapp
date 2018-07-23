@@ -11,7 +11,8 @@ import {
   Icon,
   Form,
   Message,
-  Segment
+  Segment,
+  Grid,
 } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import AnswerRow from '../../components/AnswerRow';
@@ -159,6 +160,10 @@ class BountyShow extends Component {
             content="Post a new answer"
             as="h3"
           />
+
+
+
+
           <Form onSubmit={this.onSubmit}>
             <Form.Group>
               <Form.Input
@@ -173,6 +178,18 @@ class BountyShow extends Component {
                 loading={this.state.isLoading} />
             </Form.Group>
           </Form>
+
+
+
+
+          <Message info>
+   <Message.Header>Remember</Message.Header>
+   <p>
+     You can only post one answer per bounty. If you want to add a different answer, you must cancel the other one first.
+   </p>
+ </Message>
+
+
           <Dimmer.Dimmable active>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>

@@ -14,8 +14,12 @@ class DashboardRow extends Component {
     const { Row, Cell } = Table;
     const { answer, bounty, userAccount } = this.props;
 
+console.log(bounty);
     const displayId = answer.toNumber();
-    const linkString = he.decode(bounty[7]);
+    const linkString = he.decode(bounty[8]);
+
+    const renderCancel = (bounty[4] == 0);
+    const renderClaim = ((bounty[4] == 1) && (answer.toNumber() == (bounty[6]).toNumber()));
 
     return (
       <Row>
@@ -25,21 +29,25 @@ class DashboardRow extends Component {
           </a>
         </Cell>
         <Cell>
-          <a target="_blank" href={bounty[6]}>
+          <a target="_blank" href={bounty[7]}>
             {linkString}
           </a>
         </Cell>
         <Cell>
-          <Button
-            content="Claim"
-            color="purple"
-            basic
-          />
-          <Button
-            content="Cancel"
-            color="red"
-            basic
-          />
+          {renderClaim ? (
+            <Button
+              content="Claim"
+              color="purple"
+              basic
+            />
+          ) : null }
+          {renderCancel ? (
+            <Button
+              content="Cancel"
+              color="red"
+              basic
+            />
+          ) : null }
         </Cell>
       </Row>
     );

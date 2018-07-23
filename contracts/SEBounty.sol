@@ -29,8 +29,9 @@ contract SEBounty is Destructible {
         address bountyOwner;
         Stages stage;
         uint[] answers;
-        address[] answerOwners;
         uint acceptedAnswer;
+        address[] answerOwners;
+        mapping (address => bool) hasAnswered;
     }
 
     Bounty[] public bounties;
@@ -205,10 +206,13 @@ contract SEBounty is Destructible {
         public
         atStage(_bountyIndex, Stages.Opened)
     {
+        require(!bounties[_bountyIndex].hasAnswered[msg.sender]);
+
         bounties[_bountyIndex].answers.push(_answerId);
         bounties[_bountyIndex].answerOwners.push(msg.sender);
 
         answerCount[msg.sender]++;
+        bounties[_bountyIndex].hasAnswered[msg.sender] = true;
 
         emit AnswerPosted(_bountyIndex, msg.sender, _answerId);
     }
@@ -230,6 +234,7 @@ contract SEBounty is Destructible {
         bounties[_bountyIndex].answerOwners.length--;
 
         answerCount[msg.sender]--;
+        bounties[_bountyIndex].hasAnswered[msg.sender] = false;
     }
 
     function getAnswers(uint _bountyIndex)

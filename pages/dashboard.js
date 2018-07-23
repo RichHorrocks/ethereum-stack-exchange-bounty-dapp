@@ -68,6 +68,9 @@ class Dashboard extends Component {
         if (answerOwners[j].toUpperCase() == accounts[0].toUpperCase()) {
           userAnswers.push(answers[j]);
           answerBounties.push(bounties[i]);
+
+          answerBounties[answerBounties.length - 1].push(answers[bounties[i][5]]);
+
         }
       }
     }

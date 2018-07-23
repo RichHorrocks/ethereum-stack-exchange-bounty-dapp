@@ -45,8 +45,9 @@ class AnswerRow extends Component {
     const displayId = answerId.toNumber();
 
     const renderCheck = (bountyStage == 1) && (answerId.toNumber() == acceptedId.toNumber());
-    const renderAcceptCancel =
+    const renderAccept =
       (bountyStage == 0) && (bountyOwner.toUpperCase() == userAccount.toUpperCase());
+    const renderCancel = (bountyStage == 0) && (userAccount.toUpperCase() === answerOwner.toUpperCase());
     const renderClaim = renderCheck && (userAccount.toUpperCase() === answerOwner.toUpperCase());
     const disableRow = (bountyStage == 1) && !renderCheck;
 
@@ -61,7 +62,7 @@ class AnswerRow extends Component {
         </Cell>
         <Cell>{answerName}</Cell>
         <Cell>
-          {renderAcceptCancel ? (
+          {renderAccept ? (
             <Button
               content="Award"
               color="green"
@@ -70,7 +71,7 @@ class AnswerRow extends Component {
               loading={this.state.isLoading}
             />
           ) : null }
-          {renderAcceptCancel ? (
+          {renderCancel ? (
             <Button
               content="Cancel"
               color="red"

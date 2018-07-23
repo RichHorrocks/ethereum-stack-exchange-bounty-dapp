@@ -107,14 +107,14 @@
     "absolutePath": "openzeppelin-solidity/contracts/lifecycle/Destructible.sol",
     "exportedSymbols": {
       "Destructible": [
-        710
+        745
       ]
     },
-    "id": 711,
+    "id": 746,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 680,
+        "id": 715,
         "literals": [
           "solidity",
           "^",
@@ -127,10 +127,10 @@
       {
         "absolutePath": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
         "file": "../ownership/Ownable.sol",
-        "id": 681,
+        "id": 716,
         "nodeType": "ImportDirective",
-        "scope": 711,
-        "sourceUnit": 891,
+        "scope": 746,
+        "sourceUnit": 926,
         "src": "27:34:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -141,44 +141,44 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 682,
+              "id": 717,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 890,
+              "referencedDeclaration": 925,
               "src": "223:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$890",
+                "typeIdentifier": "t_contract$_Ownable_$925",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 683,
+            "id": 718,
             "nodeType": "InheritanceSpecifier",
             "src": "223:7:1"
           }
         ],
         "contractDependencies": [
-          890
+          925
         ],
         "contractKind": "contract",
         "documentation": "@title Destructible\n@dev Base contract that can be destroyed by owner. All funds in contract will be sent to the owner.",
         "fullyImplemented": true,
-        "id": 710,
+        "id": 745,
         "linearizedBaseContracts": [
-          710,
-          890
+          745,
+          925
         ],
         "name": "Destructible",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 686,
+              "id": 721,
               "nodeType": "Block",
               "src": "265:3:1",
               "statements": []
             },
             "documentation": null,
-            "id": 687,
+            "id": 722,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -186,19 +186,19 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 684,
+              "id": 719,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "247:2:1"
             },
             "payable": true,
             "returnParameters": {
-              "id": 685,
+              "id": 720,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "265:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "236:32:1",
             "stateMutability": "payable",
             "superFunction": null,
@@ -206,7 +206,7 @@
           },
           {
             "body": {
-              "id": 696,
+              "id": 731,
               "nodeType": "Block",
               "src": "402:30:1",
               "statements": [
@@ -216,11 +216,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 693,
+                        "id": 728,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 808,
+                        "referencedDeclaration": 843,
                         "src": "421:5:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -235,18 +235,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 692,
+                      "id": 727,
                       "name": "selfdestruct",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 913,
+                      "referencedDeclaration": 948,
                       "src": "408:12:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_selfdestruct_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 694,
+                    "id": 729,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -260,28 +260,28 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 695,
+                  "id": 730,
                   "nodeType": "ExpressionStatement",
                   "src": "408:19:1"
                 }
               ]
             },
             "documentation": "@dev Transfers the current balance to the owner and terminates the contract.",
-            "id": 697,
+            "id": 732,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
             "modifiers": [
               {
                 "arguments": null,
-                "id": 690,
+                "id": 725,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 689,
+                  "id": 724,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 838,
+                  "referencedDeclaration": 873,
                   "src": "385:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -295,19 +295,19 @@
             "name": "destroy",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 688,
+              "id": 723,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "382:2:1"
             },
             "payable": false,
             "returnParameters": {
-              "id": 691,
+              "id": 726,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "402:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "366:66:1",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -315,7 +315,7 @@
           },
           {
             "body": {
-              "id": 708,
+              "id": 743,
               "nodeType": "Block",
               "src": "497:35:1",
               "statements": [
@@ -325,11 +325,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 705,
+                        "id": 740,
                         "name": "_recipient",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 699,
+                        "referencedDeclaration": 734,
                         "src": "516:10:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -344,18 +344,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 704,
+                      "id": 739,
                       "name": "selfdestruct",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 913,
+                      "referencedDeclaration": 948,
                       "src": "503:12:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_selfdestruct_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 706,
+                    "id": 741,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -369,28 +369,28 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 707,
+                  "id": 742,
                   "nodeType": "ExpressionStatement",
                   "src": "503:24:1"
                 }
               ]
             },
             "documentation": null,
-            "id": 709,
+            "id": 744,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
             "modifiers": [
               {
                 "arguments": null,
-                "id": 702,
+                "id": 737,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 701,
+                  "id": 736,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 838,
+                  "referencedDeclaration": 873,
                   "src": "480:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -404,15 +404,15 @@
             "name": "destroyAndSend",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 700,
+              "id": 735,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 699,
+                  "id": 734,
                   "name": "_recipient",
                   "nodeType": "VariableDeclaration",
-                  "scope": 709,
+                  "scope": 744,
                   "src": "460:18:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -421,7 +421,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 698,
+                    "id": 733,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "460:7:1",
@@ -438,19 +438,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 703,
+              "id": 738,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "497:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "436:96:1",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 711,
+        "scope": 746,
         "src": "198:336:1"
       }
     ],
@@ -460,14 +460,14 @@
     "absolutePath": "openzeppelin-solidity/contracts/lifecycle/Destructible.sol",
     "exportedSymbols": {
       "Destructible": [
-        710
+        745
       ]
     },
-    "id": 711,
+    "id": 746,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 680,
+        "id": 715,
         "literals": [
           "solidity",
           "^",
@@ -480,10 +480,10 @@
       {
         "absolutePath": "openzeppelin-solidity/contracts/ownership/Ownable.sol",
         "file": "../ownership/Ownable.sol",
-        "id": 681,
+        "id": 716,
         "nodeType": "ImportDirective",
-        "scope": 711,
-        "sourceUnit": 891,
+        "scope": 746,
+        "sourceUnit": 926,
         "src": "27:34:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -494,44 +494,44 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 682,
+              "id": 717,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 890,
+              "referencedDeclaration": 925,
               "src": "223:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$890",
+                "typeIdentifier": "t_contract$_Ownable_$925",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 683,
+            "id": 718,
             "nodeType": "InheritanceSpecifier",
             "src": "223:7:1"
           }
         ],
         "contractDependencies": [
-          890
+          925
         ],
         "contractKind": "contract",
         "documentation": "@title Destructible\n@dev Base contract that can be destroyed by owner. All funds in contract will be sent to the owner.",
         "fullyImplemented": true,
-        "id": 710,
+        "id": 745,
         "linearizedBaseContracts": [
-          710,
-          890
+          745,
+          925
         ],
         "name": "Destructible",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 686,
+              "id": 721,
               "nodeType": "Block",
               "src": "265:3:1",
               "statements": []
             },
             "documentation": null,
-            "id": 687,
+            "id": 722,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -539,19 +539,19 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 684,
+              "id": 719,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "247:2:1"
             },
             "payable": true,
             "returnParameters": {
-              "id": 685,
+              "id": 720,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "265:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "236:32:1",
             "stateMutability": "payable",
             "superFunction": null,
@@ -559,7 +559,7 @@
           },
           {
             "body": {
-              "id": 696,
+              "id": 731,
               "nodeType": "Block",
               "src": "402:30:1",
               "statements": [
@@ -569,11 +569,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 693,
+                        "id": 728,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 808,
+                        "referencedDeclaration": 843,
                         "src": "421:5:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -588,18 +588,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 692,
+                      "id": 727,
                       "name": "selfdestruct",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 913,
+                      "referencedDeclaration": 948,
                       "src": "408:12:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_selfdestruct_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 694,
+                    "id": 729,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -613,28 +613,28 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 695,
+                  "id": 730,
                   "nodeType": "ExpressionStatement",
                   "src": "408:19:1"
                 }
               ]
             },
             "documentation": "@dev Transfers the current balance to the owner and terminates the contract.",
-            "id": 697,
+            "id": 732,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
             "modifiers": [
               {
                 "arguments": null,
-                "id": 690,
+                "id": 725,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 689,
+                  "id": 724,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 838,
+                  "referencedDeclaration": 873,
                   "src": "385:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -648,19 +648,19 @@
             "name": "destroy",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 688,
+              "id": 723,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "382:2:1"
             },
             "payable": false,
             "returnParameters": {
-              "id": 691,
+              "id": 726,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "402:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "366:66:1",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -668,7 +668,7 @@
           },
           {
             "body": {
-              "id": 708,
+              "id": 743,
               "nodeType": "Block",
               "src": "497:35:1",
               "statements": [
@@ -678,11 +678,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 705,
+                        "id": 740,
                         "name": "_recipient",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 699,
+                        "referencedDeclaration": 734,
                         "src": "516:10:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -697,18 +697,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 704,
+                      "id": 739,
                       "name": "selfdestruct",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 913,
+                      "referencedDeclaration": 948,
                       "src": "503:12:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_selfdestruct_nonpayable$_t_address_$returns$__$",
                         "typeString": "function (address)"
                       }
                     },
-                    "id": 706,
+                    "id": 741,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -722,28 +722,28 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 707,
+                  "id": 742,
                   "nodeType": "ExpressionStatement",
                   "src": "503:24:1"
                 }
               ]
             },
             "documentation": null,
-            "id": 709,
+            "id": 744,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
             "modifiers": [
               {
                 "arguments": null,
-                "id": 702,
+                "id": 737,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 701,
+                  "id": 736,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 838,
+                  "referencedDeclaration": 873,
                   "src": "480:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -757,15 +757,15 @@
             "name": "destroyAndSend",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 700,
+              "id": 735,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 699,
+                  "id": 734,
                   "name": "_recipient",
                   "nodeType": "VariableDeclaration",
-                  "scope": 709,
+                  "scope": 744,
                   "src": "460:18:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -774,7 +774,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 698,
+                    "id": 733,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "460:7:1",
@@ -791,19 +791,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 703,
+              "id": 738,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "497:0:1"
             },
-            "scope": 710,
+            "scope": 745,
             "src": "436:96:1",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 711,
+        "scope": 746,
         "src": "198:336:1"
       }
     ],
@@ -815,5 +815,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.0",
-  "updatedAt": "2018-07-23T12:12:46.781Z"
+  "updatedAt": "2018-07-23T16:42:50.930Z"
 }
