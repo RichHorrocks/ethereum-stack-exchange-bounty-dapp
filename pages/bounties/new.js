@@ -6,6 +6,7 @@ import { Link, Router } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
 import bounty from '../../contractInstance';
+import he from 'he';
 
 class BountySearch2 extends Component {
   constructor() {
@@ -19,8 +20,9 @@ class BountySearch2 extends Component {
       question: [],
       renderQuestion: false,
       userAccount: '',
-      networkId: 4, // Default to Rinkeby, but check later anyway.
+      networkId: null,
       tokens: [],
+      questionTitle: '',
     };
   }
 
@@ -31,7 +33,9 @@ class BountySearch2 extends Component {
     try {
       const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${this.state.questionId}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
+      const questionTitle = he.decode(data.data.items[0].title);
       this.setState({ question: data.data.items[0] });
+      this.setState({ questionTitle });
       this.setState({ renderQuestion: true });
     } catch (err) {
       this.setState({ errorMessage: err.message });
@@ -113,7 +117,7 @@ class BountySearch2 extends Component {
                     </Card.Meta>
                     <Card.Description>
                       <a href={this.state.question.link}>
-                        {this.state.question.title}
+                        {this.state.questionTitle}
                       </a>
                     </Card.Description>
                   </Card.Content>

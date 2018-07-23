@@ -16,7 +16,7 @@ class App extends Component {
     super();
     this.state = {
       userAccount: '',
-      networkId: 4, // Default to Rinkeby, but check later anyway.
+      networkId: null,
     };
   }
 
@@ -50,7 +50,7 @@ class App extends Component {
                 Welcome to the Ethereum Stack Exchange Bounty homepage
               </Header>
               <p style={{ fontSize: '1.2em', lineHeight: 1.6 }}>
-                Place bounties on your questions on Stack Exchange, or earn money by answering other people's questions.
+                Place bounties on questions on Stack Exchange, or earn money by answering other people's questions.
               </p>
               <p style={{ fontSize: '1.2em', lineHeight: 1.6 }}>
                 Bounties can be placed in ETH or any ERC-20 token.

@@ -26,14 +26,14 @@ class BountyShow extends Component {
   state = {
       isLoading: true,
       userAccount: '',
-      networkId: 4,  // Default to Rinkeby, but check later anyway.
+      networkId: null,
       showBounty: {},
       bountyOwner: '',
       bountyStage: 0,
       answers: [],
       answerOwners: [],
       answerCount: 0,
-      newAnswerId: 0,
+      newAnswerId: '',
       acceptedId: 0,
       answerNames: [],
     };
@@ -136,7 +136,7 @@ class BountyShow extends Component {
 
     await this.getAnswerData();
 
-    this.setState({ isLoading: false });
+    this.setState({ isLoading: false, newAnswerId: '' });
   };
 
   render() {

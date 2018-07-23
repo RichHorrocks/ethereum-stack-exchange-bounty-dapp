@@ -3,6 +3,7 @@ import { Table, Button } from 'semantic-ui-react';
 import { Link } from '../routes';
 import bounty from '../contractInstance';
 import web3 from '../getWeb3';
+import he from 'he';
 
 class QuestionRow extends Component {
   state = {
@@ -23,15 +24,15 @@ class QuestionRow extends Component {
     const renderCancel = (userAccount.toUpperCase() === bounty[3].toUpperCase());
 
     const address = bounty[3];
+    const linkString = he.decode(bounty[7]);
 
     return (
       <Row>
         <Cell>{id}</Cell>
-        <Cell><a target="_blank" href={bounty[6]}>{bounty[7]}</a></Cell>
+        <Cell><a target="_blank" href={bounty[6]}>{linkString}</a></Cell>
         <Cell>{bounty[2].toNumber()}</Cell>
         <Cell>
           <Link route={`/bounties/${address}/${id}`}>
-
             <a>
               <Button
                 content="Details"

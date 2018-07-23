@@ -7,6 +7,7 @@ import axios from 'axios';
 import web3 from '../getWeb3';
 import bounty from '../contractInstance';
 import QuestionRow from '../components/QuestionRow';
+import DashboardRow from '../components/DashboardRow';
 
 class Dashboard extends Component {
   constructor() {
@@ -14,11 +15,17 @@ class Dashboard extends Component {
     this.state = {
       isLoading: true,
       userAccount: '',
-      networkId: 4, // Default to Rinkeby, but check later anyway.
+      networkId: null,
       userBounties: [],
       bountyCount: 0,
+      answerBounties: [],
       userAnswers: [],
       answerCount: 0,
+      userBountyCount: 0,
+      userAwardedTotal: 0,
+      userAnswerCount: 0,
+      userAcceptedCount: 0,
+      userWonTotal: 0,
     };
   }
 
@@ -48,34 +55,101 @@ class Dashboard extends Component {
     //      question ID
     let userBounties = [];
     let userAnswers = [];
+    let answerBounties = [];
     for (var i = 0; i < bountyCount; i++) {
       if (bounties[i][3].toUpperCase() == accounts[0].toUpperCase()) {
-        userBounties.push(bounties[i])
+        userBounties.push(bounties[i]);
       }
 
       const answers = await bounty.getAnswers.call(i);
       const answerOwners = await bounty.getAnswerOwners.call(i);
 
       for (var j = 0; j < answerOwners.length; j++) {
-        if (answerOwners[j].toUpperCase() == accounts[0].toUpperCase())
-            userAnswers.push(answers[j]);
+        if (answerOwners[j].toUpperCase() == accounts[0].toUpperCase()) {
+          userAnswers.push(answers[j]);
+          answerBounties.push(bounties[i]);
+        }
       }
     }
+
+    if (userBounties.length > 0) {
+      // Get all the question IDs from the bounties.
+      const ids = Array(userBounties.length).fill().map((element, index) => {
+        return userBounties[index][1].toNumber();
+      });
+
+      // Catenate the question IDs.
+      const idString = ids.join(';');
+
+      // Get the questions from Stack Exchange in a single request.
+      const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+
+      // Get the question title and the link from the returned question.
+      // Push them onto each of their respective bounties in the array.
+      data.data.items.map((item, index) => {
+        userBounties[index].push(item.link);
+        userBounties[index].push(item.title);
+      });
+    }
+
+    if (answerBounties.length > 0) {
+      // Get all the question IDs from the bounties.
+      const ids = Array(answerBounties.length).fill().map((element, index) => {
+        return answerBounties[index][1].toNumber();
+      });
+
+      // Catenate the question IDs.
+      const idString = ids.join(';');
+
+      // Get the questions from Stack Exchange in a single request.
+      const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+
+      // Get the question title and the link from the returned question.
+      // Push them onto each of their respective bounties in the array.
+      data.data.items.map((item, index) => {
+        answerBounties[index].push(item.link);
+        answerBounties[index].push(item.title);
+      });
+    }
+
+    // Get overall totals.
+    const userBountyCount = await bounty.bountyCount.call(accounts[0]);
+    const userAwardedTotal = await bounty.awardedTotal.call(accounts[0]);
+    const userAnswerCount = await bounty.answerCount.call(accounts[0]);
+    const userAcceptedCount = await bounty.acceptedCount.call(accounts[0]);
+    const userWonTotal = await bounty.wonTotal.call(accounts[0]);
 
     this.setState({
       userBounties,
       userAnswers,
+      answerBounties,
       bountyCount: userBounties.length,
       answerCount: userAnswers.length,
       isLoading: false,
+      userBountyCount,
+      userAwardedTotal,
+      userAnswerCount,
+      userAcceptedCount,
+      userWonTotal,
     });
   }
 
-  renderRow() {
+  renderBountyRow() {
     return this.state.userBounties.map((bounty, index) => {
       return <QuestionRow
         key={index}
         id={index}
+        bounty={bounty}
+        userAccount={this.state.userAccount}
+      />;
+    });
+  }
+
+  renderAanswerRow() {
+    return this.state.answerBounties.map((bounty, index) => {
+      return <DashboardRow
+        key={index}
+        answer={this.state.userAnswers[index]}
         bounty={bounty}
         userAccount={this.state.userAccount}
       />;
@@ -98,6 +172,10 @@ class Dashboard extends Component {
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>
             </Dimmer>
+            <Header
+              content={`You have posted ${this.state.userBountyCount} bounties and awarded ${this.state.userAwardedTotal} ETH.`}
+              as="h4"
+            />
             <Table>
               <Header>
                 <Row>
@@ -108,7 +186,7 @@ class Dashboard extends Component {
                 </Row>
               </Header>
               <Body>
-                {this.renderRow()}
+                {this.renderBountyRow()}
               </Body>
             </Table>
           </Dimmer.Dimmable>
@@ -119,16 +197,20 @@ class Dashboard extends Component {
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>
             </Dimmer>
+            <Header
+              content={`You have won ${this.state.userWonTotal} ETH from a total of ${this.state.userAnswerCount} answers. (${this.state.userAcceptedCount} accepted.)`}
+              as="h4"
+            />
             <Table>
               <Header>
                 <Row>
-                  <HeaderCell>ID and Link</HeaderCell>
-                  <HeaderCell>Answer Owner</HeaderCell>
+                  <HeaderCell>Answer ID</HeaderCell>
+                  <HeaderCell>Question Title and Link</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>
               </Header>
               <Body>
-
+                {this.renderAanswerRow()}
               </Body>
             </Table>
           </Dimmer.Dimmable>

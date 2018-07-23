@@ -25,7 +25,7 @@ class ExploreBounty extends Component {
       bounties: [],
       isLoading: true,
       userAccount: '',
-      networkId: 4, // Default to Rinkeby, but check later anyway.
+      networkId: null,
     };
   }
 

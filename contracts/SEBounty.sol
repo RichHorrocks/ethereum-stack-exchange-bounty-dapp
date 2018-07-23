@@ -34,6 +34,13 @@ contract SEBounty is Destructible {
     }
 
     Bounty[] public bounties;
+    mapping (address => uint256) public bountyCount;
+    mapping (address => uint256) public awardedTotal;
+
+    mapping (address => uint256) public answerCount;
+    mapping (address => uint256) public acceptedCount;
+    mapping (address => uint256) public wonTotal;
+
 
     modifier isBountyOwner(uint _bountyIndex) {
         require(
@@ -95,6 +102,8 @@ contract SEBounty is Destructible {
             acceptedAnswer: 0
         }));
 
+        bountyCount[msg.sender]++;
+
         emit BountyOpened(bounties.length - 1, msg.sender, _questionId);
     }
 
@@ -122,6 +131,12 @@ contract SEBounty is Destructible {
         bounties[_bountyIndex].stage = Stages.Awarded;
         bounties[_bountyIndex].acceptedAnswer = _answerIndex;
 
+        awardedTotal[msg.sender] += bounties[_bountyIndex].bountyValue;
+
+        address winner = bounties[_bountyIndex].answerOwners[_answerIndex];
+        wonTotal[winner] += bounties[_bountyIndex].bountyValue;
+        acceptedCount[winner]++;
+
         emit BountyAwarded(_bountyIndex);
     }
 
@@ -148,6 +163,8 @@ contract SEBounty is Destructible {
     {
         bounties[_bountyIndex].stage = Stages.Cancelled;
 
+        bountyCount[msg.sender]--;
+
         emit BountyCancelled(_bountyIndex, msg.sender);
     }
 
@@ -166,6 +183,8 @@ contract SEBounty is Destructible {
             bounties[_bountyIndex] = bounties[bounties.length - 1];
         }
         bounties.length--;
+
+        bountyCount[msg.sender]--;
 
         msg.sender.transfer(bounty);
 
@@ -189,6 +208,8 @@ contract SEBounty is Destructible {
         bounties[_bountyIndex].answers.push(_answerId);
         bounties[_bountyIndex].answerOwners.push(msg.sender);
 
+        answerCount[msg.sender]++;
+
         emit AnswerPosted(_bountyIndex, msg.sender, _answerId);
     }
 
@@ -207,6 +228,8 @@ contract SEBounty is Destructible {
         }
         bounties[_bountyIndex].answers.length--;
         bounties[_bountyIndex].answerOwners.length--;
+
+        answerCount[msg.sender]--;
     }
 
     function getAnswers(uint _bountyIndex)
