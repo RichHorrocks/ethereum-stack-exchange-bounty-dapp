@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Button, Header, Divider, Segment } from 'semantic-ui-react';
+import { Button, Header, Label, Divider, Icon } from 'semantic-ui-react';
 import { Link } from '../routes';
-import Status from './Status'
+import Status from './Status';
 
 class Head extends Component {
   render() {
@@ -43,6 +43,9 @@ class Head extends Component {
             </a>
           </Link>
         ) : null }
+        <Label>
+          <Icon name='mail' /> {this.props.userAccount}
+        </Label>
         <Header floated='right'>
           <Status
             userAccount={this.props.userAccount}

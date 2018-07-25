@@ -20,6 +20,8 @@ class QuestionRow extends Component {
   render() {
     const { Row, Cell } = Table;
     const { id, bounty, userAccount } = this.props;
+console.log("BOUNTY");
+    console.log(bounty);
 
     const renderCancel = (userAccount.toUpperCase() === bounty[3].toUpperCase());
 
@@ -30,7 +32,7 @@ class QuestionRow extends Component {
       <Row>
         <Cell>{id}</Cell>
         <Cell><a target="_blank" href={bounty[6]}>{linkString}</a></Cell>
-        <Cell>{bounty[2].toNumber()}</Cell>
+        <Cell>{bounty[2]}</Cell>
         <Cell>
           <Link route={`/bounties/${address}/${id}`}>
             <a>

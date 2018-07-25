@@ -7,6 +7,11 @@ if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
   // Use MM's provider and create our instance of web3.
   web3 = new Web3(window.web3.currentProvider);
   console.log('Using MM');
+
+  web3.currentProvider.publicConfigStore.on('update', ({ selectedAddress }) => {
+    console.log({selectedAddress});
+  });
+
 } else {
   // We are on the server, or the user isn't running MM.
   const provider = new Web3.providers.HttpProvider(

@@ -53,7 +53,8 @@ class ExploreBounty extends Component {
     if (bountyCount > 0) {
       // Get all the question IDs from the bounties.
       const ids = Array(bountyCount).fill().map((element, index) => {
-        return bounties[index][1].toNumber();
+        bounties[index] = JSON.parse(JSON.stringify(bounties[index]));
+        return bounties[index][1];
       });
 
       // Catenate the question IDs.

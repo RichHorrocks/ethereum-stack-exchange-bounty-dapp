@@ -4,7 +4,9 @@ import {
   Container,
   Segment,
   Header,
-  Grid
+  Grid,
+  Label,
+  Icon,
 } from 'semantic-ui-react';
 import Layout from '../components/Layout';
 import Status from '../components/Status';
@@ -41,7 +43,7 @@ class App extends Component {
             textAlign='center'
             style={{ height: '100%' }}
             verticalAlign='middle'>
-            <Grid.Column style={{ height: 300 }}>
+            <Grid.Column>
               <Header
                 textAlign='center'
                 inverted
@@ -80,12 +82,18 @@ class App extends Component {
                   size="huge"
                 />
               </Link>
+              <br />
+              <br />
+              <Status
+                userAccount={this.state.userAccount}
+                networkId={this.state.networkId}
+              />
+              <br />
+              <Label pointing>
+                <Icon name='mail' /> {this.state.userAccount}
+              </Label>
             </Grid.Column>
           </Grid>
-          <Status
-            userAccount={this.state.userAccount}
-            networkId={this.state.networkId}
-          />
         </Segment>
       </Layout>
     );

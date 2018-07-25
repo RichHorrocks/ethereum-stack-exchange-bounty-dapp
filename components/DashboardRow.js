@@ -13,19 +13,19 @@ class DashboardRow extends Component {
   render() {
     const { Row, Cell } = Table;
     const { answer, bounty, userAccount } = this.props;
-
+    console.log("ANSWER");
 console.log(bounty);
-    const displayId = answer.toNumber();
+
     const linkString = he.decode(bounty[8]);
 
     const renderCancel = (bounty[4] == 0);
-    const renderClaim = ((bounty[4] == 1) && (answer.toNumber() == (bounty[6]).toNumber()));
+    const renderClaim = ((bounty[4] == 1) && (answer == (bounty[6]).toNumber()));
 
     return (
       <Row>
         <Cell>
-          <a target="_blank" href={`https://ethereum.stackexchange.com/a/${displayId}/52`}>
-            {displayId}
+          <a target="_blank" href={`https://ethereum.stackexchange.com/a/${answer}/52`}>
+            {answer}
           </a>
         </Cell>
         <Cell>

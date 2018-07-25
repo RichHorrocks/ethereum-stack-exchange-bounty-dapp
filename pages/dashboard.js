@@ -16,8 +16,10 @@ class Dashboard extends Component {
       isLoading: true,
       userAccount: '',
       networkId: null,
-      userBounties: [],
       bountyCount: 0,
+
+      userBounties: [],
+
       answerBounties: [],
       userAnswers: [],
       answerCount: 0,
@@ -58,18 +60,18 @@ class Dashboard extends Component {
     let answerBounties = [];
     for (var i = 0; i < bountyCount; i++) {
       if (bounties[i][3].toUpperCase() == accounts[0].toUpperCase()) {
-        userBounties.push(bounties[i]);
+        userBounties.push(JSON.parse(JSON.stringify(bounties[i])));
       }
 
       const answers = await bounty.getAnswers.call(i);
       const answerOwners = await bounty.getAnswerOwners.call(i);
 
-      for (var j = 0; j < answerOwners.length; j++) {
+      for (var j = 0; j < answers.length; j++) {
         if (answerOwners[j].toUpperCase() == accounts[0].toUpperCase()) {
-          userAnswers.push(answers[j]);
-          answerBounties.push(bounties[i]);
+          userAnswers.push(JSON.parse(JSON.stringify(answers[j])));
+          answerBounties.push(JSON.parse(JSON.stringify(bounties[i])));
 
-          answerBounties[answerBounties.length - 1].push(answers[bounties[i][5]]);
+          answerBounties[answerBounties.length - 1].push(JSON.parse(JSON.stringify(answers[bounties[i][5]])));
 
         }
       }
@@ -78,7 +80,7 @@ class Dashboard extends Component {
     if (userBounties.length > 0) {
       // Get all the question IDs from the bounties.
       const ids = Array(userBounties.length).fill().map((element, index) => {
-        return userBounties[index][1].toNumber();
+        return userBounties[index][1];
       });
 
       // Catenate the question IDs.
@@ -98,7 +100,7 @@ class Dashboard extends Component {
     if (answerBounties.length > 0) {
       // Get all the question IDs from the bounties.
       const ids = Array(answerBounties.length).fill().map((element, index) => {
-        return answerBounties[index][1].toNumber();
+        return answerBounties[index][1];
       });
 
       // Catenate the question IDs.
