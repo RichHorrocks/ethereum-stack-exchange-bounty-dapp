@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form, Button, Input, Message, Container, Card, Segment, Grid, Header, Dropdown, Dimmer, Loader } from 'semantic-ui-react';
+import { Form, Input, TextArea, Dropdown, Button,  Message, Container, Card, Segment, Grid, Header, Dimmer, Loader } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import Head from '../../components/Head';
 import { Link, Router } from '../../routes';
@@ -15,6 +15,7 @@ class BountySearch2 extends Component {
       questionId: '',
       errorMessage: '',
       bountyValue: '',
+      bountyUnits: 'ether',
       bountyDescription: '',
       isLoading: false,
       loaderContent: '',
@@ -29,56 +30,73 @@ class BountySearch2 extends Component {
 
   onSubmit = async (e) => {
     e.preventDefault();
-    this.setState({ isLoading: true, errorMessage: '' });
+    this.setState({
+      isLoading: true,
+      renderQuestion: false,
+      errorMessage: '',
+    });
 
-    try {
-      const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${this.state.questionId}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+    if (this.state.questionId == '') {
+      this.setState({ errorMessage: 'Please enter a question ID' });
+    } else {
+      try {
+        const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${this.state.questionId}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
-      const questionTitle = he.decode(data.data.items[0].title);
-      this.setState({ question: data.data.items[0] });
-      this.setState({ questionTitle });
-      this.setState({ renderQuestion: true });
-    } catch (err) {
-      this.setState({ errorMessage: err.message });
-      console.log(err);
+        const questionTitle = he.decode(data.data.items[0].title);
+        this.setState({
+          question: data.data.items[0],
+          questionTitle,
+          renderQuestion: true
+        });
+      } catch (err) {
+        this.setState({ errorMessage: err.message });
+        console.log(err);
+      }
     }
 
-    this.setState({ isLoading: false, renderQuestion: true });
+    this.setState({ isLoading: false });
   };
 
   handleClick = async () => {
     this.setState({
       isLoading: true,
-      loaderContent: 'Preparing bounty...',
       errorMessage: '',
     });
 
-    try {
-      // Define an event we'll be watching for later on.
-      //var bountyOpenedEvent = bounty.events.BountyOpened();
+    if (this.state.questionId == '') {
+      this.setState({ errorMessage: 'Please enter a question ID' });
+    } else if (this.state.bountyValue == 0) {
+      this.setState({ errorMessage: 'Please enter a value for your bounty' });
+    } else {
+      try {
+        // Define an event we'll be watching for later on.
+        //var bountyOpenedEvent = bounty.events.BountyOpened();
+        this.setState({ loaderContent: 'Preparing bounty...' });
+        console.log(this.state.bountyUnits);
 
-      // Call into the contract to create the bounty.
-      // This runs oraclize_query() to check that our question ID is valid.
-      await bounty.createBounty(
-        this.state.bountyDescription,
-        this.state.questionId,
-        { from: this.state.userAccount,
-          value: this.state.bountyValue,
-        });
+        // Call into the contract to create the bounty.
+        // This runs oraclize_query() to check that our question ID is valid.
+        await bounty.createBounty(
+          this.state.bountyDescription,
+          this.state.questionId,
+          { from: this.state.userAccount,
+            value: web3.utils.toWei(this.state.bountyValue, this.state.bountyUnits),
+          });
 
-      // Wait for the __callback() function to be called in the contract.
-      // This emits a log that we can check for. (BountyOpened)
-      this.setState({ loaderContent: 'Checking with Stack Exchange...' });
+        // Wait for the __callback() function to be called in the contract.
+        // This emits a log that we can check for. (BountyOpened)
+        this.setState({ loaderContent: 'Checking with Stack Exchange...' });
 
-      //bountyOpenedEvent.watch((err, result) => {
-    //    if (!err) {
-          Router.pushRoute('/bounties/explore');
-  //      } else {
-    //      this.setState({ errorMessage: err.message });
-      //  }
-    //  });
-    } catch (err) {
-      this.setState({ errorMessage: err.message, loaderContent: '' });
+        //bountyOpenedEvent.watch((err, result) => {
+      //    if (!err) {
+            Router.pushRoute('/bounties/explore');
+    //      } else {
+      //      this.setState({ errorMessage: err.message });
+        //  }
+      //  });
+      } catch (err) {
+        this.setState({ errorMessage: err.message, loaderContent: '' });
+      }
     }
 
     this.setState({ isLoading: false });
@@ -137,7 +155,7 @@ class BountySearch2 extends Component {
                   onSubmit={this.onSubmit}
                   error={!!this.state.errorMessage}>
                   <Form.Field>
-                    <input
+                    <Form.Input
                       placeholder='Question ID'
                       value={this.state.questionId}
                       onChange={e =>
@@ -182,9 +200,11 @@ class BountySearch2 extends Component {
                       <Input
                         label={
                           <Dropdown
-                            defaultValue='ether'
+                            defaultValue={this.state.bountyUnits}
+                            value={this.state.bountyUnits}
                             options={valueOptions}
-                            onChange={this.handleValue}
+                            onChange={(e, { value }) =>
+                              this.setState({ bountyUnits: value })}
                           />
                         }
                         labelPosition="right"
@@ -212,7 +232,8 @@ class BountySearch2 extends Component {
                   Describe any instructions for the bounty hunters
                 </Grid.Column>
                 <Grid.Column>
-                  <Form>
+                  <Form
+                    error={!!this.state.errorMessage}>
                     <Form.Field>
                       <Form.TextArea
                         placeholder='Instructions for your bounty...'
@@ -221,6 +242,11 @@ class BountySearch2 extends Component {
                           this.setState({ bountyDescription: e.target.value })}
                         />
                     </Form.Field>
+                    <Message
+                      error
+                      header="Oops!"
+                      content={this.state.errorMessage}
+                    />
                   </Form>
                 </Grid.Column>
                 <Grid.Column>
