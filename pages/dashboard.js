@@ -1,8 +1,15 @@
 import React, { Component } from 'react';
-import { Form, Button, Input, Message, Container, Card, Segment, Grid, Header, Image, Dimmer, Loader, Table, Divider } from 'semantic-ui-react';
+import {
+  Container,
+  Header,
+  Dimmer,
+  Loader,
+  Table,
+  Divider,
+} from 'semantic-ui-react';
 import Layout from '../components/Layout';
 import Head from '../components/Head';
-import { Link, Router } from '../routes';
+import { Link } from '../routes';
 import axios from 'axios';
 import web3 from '../getWeb3';
 import bounty from '../contractInstance';
@@ -17,9 +24,7 @@ class Dashboard extends Component {
       userAccount: '',
       networkId: null,
       bountyCount: 0,
-
       userBounties: [],
-
       answerBounties: [],
       userAnswers: [],
       answerCount: 0,
@@ -186,6 +191,7 @@ class Dashboard extends Component {
                 <Row>
                   <HeaderCell>ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
+                  <HeaderCell>Owner Address / ENS Name</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>

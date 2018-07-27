@@ -105,6 +105,7 @@ class ExploreBounty extends Component {
                 <Row>
                   <HeaderCell>ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
+                  <HeaderCell>Owner Address / ENS Name</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>

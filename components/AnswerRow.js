@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button, Icon, dimmer } from 'semantic-ui-react';
-import { Link } from '../routes';
+import { Table, Button, Icon } from 'semantic-ui-react';
 import bounty from '../contractInstance';
 
 class AnswerRow extends Component {

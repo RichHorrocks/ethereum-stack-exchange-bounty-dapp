@@ -7,19 +7,16 @@ import {
   Header,
   Loader,
   Dimmer,
-  Step,
-  Icon,
   Form,
   Message,
-  Segment,
-  Grid,
+  Item,
 } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import AnswerRow from '../../components/AnswerRow';
 import DetailsSteps from '../../components/DetailsSteps';
 import Head from '../../components/Head';
 import bounty from '../../contractInstance';
-import { Link, Router } from '../../routes';
+import { Link } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
 
@@ -29,8 +26,8 @@ class BountyShow extends Component {
       userAccount: '',
       networkId: null,
       showBounty: {},
-      bountyOwner: '',
-      bountyStage: 0,
+      bountyLink: '',
+      bountyTitle: '',
       answers: [],
       answerOwners: [],
       answerCount: 0,
@@ -47,14 +44,27 @@ class BountyShow extends Component {
     };
   }
 
-  async getAnswerData () {
+  async getQuestionData() {
     // Get the bounty and set the stage.
     const showBounty = await bounty.bounties.call(this.props.bountyId);
-    this.setState({
-      bountyStage: showBounty[4].toNumber(),
-      bountyOwner: showBounty[3]
-    });
+    this.setState({ showBounty });
 
+    // Get the data about the question from Stack Exchange.
+    const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${showBounty[1]}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+console.log(data.data.items[0]);
+
+    //this.setState({ bountyLink: data.data.items[0]})
+
+    // Get the question title and the link from the returned question.
+    // Push them onto each of their respective bounties in the array.
+    this.setState({
+      bountyTitle: data.data.items[0].title,
+      bountyLink: data.data.items[0].link,
+    });
+    console.log(this.state.showBounty);
+  }
+
+  async getAnswerData () {
     // Get the array of answers.
     const answers = await bounty.getAnswers.call(this.props.bountyId);
 
@@ -84,7 +94,7 @@ class BountyShow extends Component {
       });
 
       // Eh? Think this shouldn't be returning this...
-      this.setState({ acceptedId: answers[showBounty[5]] });
+      this.setState({ acceptedId: answers[this.state.showBounty[5]] });
     }
 
     this.setState({
@@ -105,6 +115,7 @@ class BountyShow extends Component {
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
 
+    await this.getQuestionData();
     await this.getAnswerData();
   }
 
@@ -117,11 +128,10 @@ class BountyShow extends Component {
         answerId={answer}
         answerOwner={this.state.answerOwners[index]}
         acceptedId={this.state.acceptedId}
-        bountyOwner={this.state.bountyOwner}
+        bountyOwner={this.state.showBounty[3]}
         answerName={this.state.answerNames[index]}
         userAccount={this.state.userAccount}
-        bountyStage={this.state.bountyStage}
-        bountyOwner={this.state.bountyOwner}
+        bountyStage={this.state.showBounty[4].toNumber()}
       />;
     });
   }
@@ -152,18 +162,29 @@ class BountyShow extends Component {
             networkId={this.state.networkId}
           />
           <DetailsSteps
-            stage={this.state.bountyStage}
+            stage={this.state.showBounty[4]}
           />
-
+          <Divider />
+          <Item.Group>
+            <Item>
+              <Item.Content>
+                <Item.Header as='a' href={this.state.bountyLink}>
+                  {this.state.bountyTitle}
+                </Item.Header>
+                <Item.Description>
+                  {this.state.showBounty[0]}
+                </Item.Description>
+                <Item.Extra>
+                  Posted by {this.state.showBounty[3]}
+                </Item.Extra>
+              </Item.Content>
+            </Item>
+          </Item.Group>
           <Divider />
           <Header
             content="Post a new answer"
             as="h3"
           />
-
-
-
-
           <Form onSubmit={this.onSubmit}>
             <Form.Group>
               <Form.Input
@@ -178,18 +199,12 @@ class BountyShow extends Component {
                 loading={this.state.isLoading} />
             </Form.Group>
           </Form>
-
-
-
-
           <Message info>
-   <Message.Header>Remember</Message.Header>
-   <p>
-     You can only post one answer per bounty. If you want to add a different answer, you must cancel the other one first.
-   </p>
- </Message>
-
-
+            <Message.Header>Remember</Message.Header>
+            <p>
+              You can only post one answer per bounty. If you want to add a different answer, you must cancel the other one first.
+            </p>
+          </Message>
           <Dimmer.Dimmable active>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>

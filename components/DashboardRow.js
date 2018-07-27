@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { Table, Button } from 'semantic-ui-react';
-import { Link } from '../routes';
 import bounty from '../contractInstance';
-import web3 from '../getWeb3';
 import he from 'he';
 
 class DashboardRow extends Component {
@@ -13,11 +11,7 @@ class DashboardRow extends Component {
   render() {
     const { Row, Cell } = Table;
     const { answer, bounty, userAccount } = this.props;
-    console.log("ANSWER");
-console.log(bounty);
-
     const linkString = he.decode(bounty[8]);
-
     const renderCancel = (bounty[4] == 0);
     const renderClaim = ((bounty[4] == 1) && (answer == (bounty[6]).toNumber()));
 
