@@ -8,6 +8,10 @@ import web3 from '../../getWeb3';
 import bounty from '../../contractInstance';
 import he from 'he';
 
+import Web3 from 'web3';
+import SEBounty from '../../build/contracts/SEBounty.json';
+import contract from 'truffle-contract';
+
 class BountySearch2 extends Component {
   constructor() {
     super();
@@ -28,7 +32,7 @@ class BountySearch2 extends Component {
     };
   }
 
-  onSubmit = async (e) => {
+  onFind = async (e) => {
     e.preventDefault();
     this.setState({
       isLoading: true,
@@ -57,7 +61,7 @@ class BountySearch2 extends Component {
     this.setState({ isLoading: false });
   };
 
-  handleClick = async () => {
+  onPost = async () => {
     this.setState({
       isLoading: true,
       errorMessage: '',
@@ -72,11 +76,10 @@ class BountySearch2 extends Component {
         // Define an event we'll be watching for later on.
         //var bountyOpenedEvent = bounty.events.BountyOpened();
         this.setState({ loaderContent: 'Preparing bounty...' });
-        console.log(this.state.bountyUnits);
 
         // Call into the contract to create the bounty.
         // This runs oraclize_query() to check that our question ID is valid.
-        await bounty.createBounty(
+        await bounty.postBounty(
           this.state.bountyDescription,
           this.state.questionId,
           { from: this.state.userAccount,
@@ -85,21 +88,39 @@ class BountySearch2 extends Component {
 
         // Wait for the __callback() function to be called in the contract.
         // This emits a log that we can check for. (BountyOpened)
-        this.setState({ loaderContent: 'Checking with Stack Exchange...' });
+        this.setState({
+          loaderContent:
+          'Checking with Stack Exchange. This might take a minute...',
+        });
 
-        //bountyOpenedEvent.watch((err, result) => {
-      //    if (!err) {
+        // Metamask doesn't support events in web3@1.0.0... :-|
+        // How is this?
+        const web3Infura = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/_ws'));
+
+        var bountyEvents = new web3Infura.eth.Contract(SEBounty.abi, '0xf0bf634d51292e9c580c74add0b2828c9da8d680');
+
+        bountyEvents.events.OraclizeQuerySuccess({}, (err, result) => {
+          if (!err) {
+            console.log("LOGGED -- " + result);
             Router.pushRoute('/bounties/explore');
-    //      } else {
-      //      this.setState({ errorMessage: err.message });
-        //  }
-      //  });
+          } else {
+            this.setState({ errorMessage: err.message, isLoading: false });
+          }
+        });
+
+        bountyEvents.events.OraclizeQueryFail({}, (err, result) => {
+          this.setState({
+            errorMessage: "Unable to confirm request with Stack Exchange", isLoading: false
+          });
+        });
+
+
       } catch (err) {
         this.setState({ errorMessage: err.message, loaderContent: '' });
       }
     }
 
-    this.setState({ isLoading: false });
+
   };
 
   async componentDidMount() {
@@ -152,7 +173,7 @@ class BountySearch2 extends Component {
                 </Grid.Column>
                 <Grid.Column>
                 <Form
-                  onSubmit={this.onSubmit}
+                  onSubmit={this.onFind}
                   error={!!this.state.errorMessage}>
                   <Form.Field>
                     <Form.Input
@@ -200,7 +221,6 @@ class BountySearch2 extends Component {
                       <Input
                         label={
                           <Dropdown
-                            defaultValue={this.state.bountyUnits}
                             value={this.state.bountyUnits}
                             options={valueOptions}
                             onChange={(e, { value }) =>
@@ -264,7 +284,7 @@ class BountySearch2 extends Component {
                     content='Post Bounty'
                     color='green'
                     size='huge'
-                    onClick={this.handleClick}
+                    onClick={this.onPost}
                     loading={this.state.isLoading}
                   />
                 </Grid.Column>

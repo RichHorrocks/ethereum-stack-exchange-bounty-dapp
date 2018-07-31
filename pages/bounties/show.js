@@ -19,6 +19,7 @@ import bounty from '../../contractInstance';
 import { Link } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
+import moment from 'moment';
 
 class BountyShow extends Component {
   state = {
@@ -51,7 +52,6 @@ class BountyShow extends Component {
 
     // Get the data about the question from Stack Exchange.
     const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${showBounty[1]}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
-console.log(data.data.items[0]);
 
     //this.setState({ bountyLink: data.data.items[0]})
 
@@ -61,7 +61,6 @@ console.log(data.data.items[0]);
       bountyTitle: data.data.items[0].title,
       bountyLink: data.data.items[0].link,
     });
-    console.log(this.state.showBounty);
   }
 
   async getAnswerData () {
@@ -117,6 +116,10 @@ console.log(data.data.items[0]);
 
     await this.getQuestionData();
     await this.getAnswerData();
+  }
+
+  getTime() {
+    return moment(this.state.showBounty[6], "X").fromNow();
   }
 
   renderRow() {
@@ -175,7 +178,7 @@ console.log(data.data.items[0]);
                   {this.state.showBounty[0]}
                 </Item.Description>
                 <Item.Extra>
-                  Posted by {this.state.showBounty[3]}
+                  Posted by {this.state.showBounty[3]} -- {this.getTime()}
                 </Item.Extra>
               </Item.Content>
             </Item>

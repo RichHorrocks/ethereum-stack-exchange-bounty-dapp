@@ -37,6 +37,7 @@ class Dashboard extends Component {
   }
 
   async componentDidMount() {
+    console.log(web3);
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
@@ -96,9 +97,20 @@ class Dashboard extends Component {
 
       // Get the question title and the link from the returned question.
       // Push them onto each of their respective bounties in the array.
+    //  data.data.items.map((item, index) => {
+    //    userBounties[index].push(item.link);
+    //    userBounties[index].push(item.title);
+    //  });
+
+      // It's possible multiple bounties are open for the same question ID.
+      // Iterate through all the bounties... Is there a better way than this?
       data.data.items.map((item, index) => {
-        userBounties[index].push(item.link);
-        userBounties[index].push(item.title);
+        for (var i = 0; i < bountyCount; i++) {
+          if (userBounties[i][1] == item.question_id) {
+            userBounties[i].push(item.link);
+            userBounties[i].push(item.title);
+          }
+        }
       });
     }
 
@@ -189,7 +201,7 @@ class Dashboard extends Component {
             <Table>
               <Header>
                 <Row>
-                  <HeaderCell>ID</HeaderCell>
+                  <HeaderCell>SE ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
                   <HeaderCell>Owner Address / ENS Name</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>

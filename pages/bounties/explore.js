@@ -66,8 +66,14 @@ class ExploreBounty extends Component {
       // Get the question title and the link from the returned question.
       // Push them onto each of their respective bounties in the array.
       data.data.items.map((item, index) => {
-        bounties[index].push(item.link);
-        bounties[index].push(item.title);
+        // It's possible multiple bounties are open for the same question ID.
+        // Iterate through all the bounties... Is there a better way than this?
+        for (var i = 0; i < bountyCount; i++) {
+          if (bounties[i][1] == item.question_id) {
+            bounties[i].push(item.link);
+            bounties[i].push(item.title);
+          }
+        }
       });
     }
 
@@ -103,7 +109,7 @@ class ExploreBounty extends Component {
             <Table>
               <Header>
                 <Row>
-                  <HeaderCell>ID</HeaderCell>
+                  <HeaderCell>SE ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
                   <HeaderCell>Owner Address / ENS Name</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>

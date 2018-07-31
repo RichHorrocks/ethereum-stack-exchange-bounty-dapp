@@ -9,7 +9,7 @@ if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
   console.log('Using MM');
 
   web3.currentProvider.publicConfigStore.on('update', ({ selectedAddress }) => {
-    console.log({ selectedAddress });
+    //console.log({ selectedAddress });
   });
 
 } else {

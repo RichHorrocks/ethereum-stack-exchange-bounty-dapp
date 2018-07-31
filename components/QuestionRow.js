@@ -20,18 +20,14 @@ class QuestionRow extends Component {
   render() {
     const { Row, Cell } = Table;
     const { id, bounty, userAccount } = this.props;
-
-    console.log(bounty);
-
     const renderCancel = (userAccount.toUpperCase() === bounty[3].toUpperCase());
-
     const address = bounty[3];
-    const linkString = he.decode(bounty[7]);
+    const linkString = he.decode(bounty[8]);
 
     return (
       <Row>
-        <Cell>{id}</Cell>
-        <Cell><a target="_blank" href={bounty[6]}>{linkString}</a></Cell>
+        <Cell>{bounty[1]}</Cell>
+        <Cell><a target="_blank" href={bounty[7]}>{linkString}</a></Cell>
         <Cell>{bounty[3].toUpperCase()}</Cell>
         <Cell>{bounty[2]}</Cell>
         <Cell>
