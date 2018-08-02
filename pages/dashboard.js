@@ -12,6 +12,7 @@ import Head from '../components/Head';
 import { Link } from '../routes';
 import axios from 'axios';
 import web3 from '../getWeb3';
+import listenWeb3 from '../listenWeb3';
 import bounty from '../contractInstance';
 import QuestionRow from '../components/QuestionRow';
 import DashboardRow from '../components/DashboardRow';
@@ -37,10 +38,10 @@ class Dashboard extends Component {
   }
 
   async componentDidMount() {
-    console.log(web3);
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
+    listenWeb3(accounts[0]);
 
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });

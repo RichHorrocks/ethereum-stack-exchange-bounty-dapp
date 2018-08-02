@@ -5,6 +5,7 @@ import Head from '../../components/Head';
 import { Link, Router } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
+import listenWeb3 from '../../listenWeb3';
 import bounty from '../../contractInstance';
 import he from 'he';
 
@@ -54,7 +55,6 @@ class BountySearch2 extends Component {
         });
       } catch (err) {
         this.setState({ errorMessage: err.message });
-        console.log(err);
       }
     }
 
@@ -127,6 +127,7 @@ class BountySearch2 extends Component {
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
+    listenWeb3(accounts[0]);
 
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
@@ -244,6 +245,9 @@ class BountySearch2 extends Component {
                   /> */}
                 </Grid.Column>
                 <Grid.Column>
+                  <Message info>
+                    <p>This Dapp uses Oraclize to query Stack Exchange. A small surcharge is added to the value of your bounty to cover the Oraclize fee.</p>
+                  </Message>
                 </Grid.Column>
               </Grid.Row>
 

@@ -29,7 +29,7 @@ class QuestionRow extends Component {
         <Cell>{bounty[1]}</Cell>
         <Cell><a target="_blank" href={bounty[7]}>{linkString}</a></Cell>
         <Cell>{bounty[3].toUpperCase()}</Cell>
-        <Cell>{bounty[2]}</Cell>
+        <Cell>{web3.utils.fromWei(bounty[2], 'ether')}</Cell>
         <Cell>
           <Link route={`/bounties/${address}/${id}`}>
             <a>

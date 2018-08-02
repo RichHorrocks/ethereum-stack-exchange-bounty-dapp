@@ -39,7 +39,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
     }
 
     Bounty[] public bounties;
-    int public count = 0;
     mapping (address => uint256) public bountyCount;
     mapping (address => uint256) public awardedTotal;
 
@@ -47,19 +46,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
     mapping (address => uint256) public acceptedCount;
     mapping (address => uint256) public wonTotal;
 
-
-    string newQuestionDescription;
-    uint newQuestionId;
-    uint newQuestionValue;
-    address newQuestionOwner;
-    uint newAnswerBountyIndex;
-    uint newAnswerId;
-
-
     // Oracle code.
-    uint public questionCounter = 0;
-    uint public answerCounter = 0;
-
     enum OracleQuery {
         Question,
         Answer
@@ -148,17 +135,16 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
 
             // Create the bounty and add it to the public array of bounties.
             bounties.push(newBounty);
-            questionCounter++;
+            bountyCount[details.bountyOwner]++;
 
         } else if (oracleDetails[myid].queryType == OracleQuery.Answer) {
-            uint index = oracleDetails[myid].bountyIndex;
-            address sender = oracleDetails[myid].bountyOwner;
+            uint index = details.bountyIndex;
+            address sender = details.bountyOwner;
 
-            bounties[index].answers.push(oracleDetails[myid].answerId);
+            bounties[index].answers.push(details.answerId);
             bounties[index].answerOwners.push(sender);
             bounties[index].hasAnswered[sender] = true;
-
-            answerCounter++;
+            answerCount[sender]++;
         }
 
         // Event to show success.

@@ -19,6 +19,7 @@ import bounty from '../../contractInstance';
 import { Link } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
+import listenWeb3 from '../../listenWeb3';
 import moment from 'moment';
 
 class BountyShow extends Component {
@@ -83,9 +84,13 @@ class BountyShow extends Component {
       // Catenate the question IDs.
       const idString = ids.join(';');
 
-      // Get the questions from Stack Exchange in a single request.
+      // Get the answers from Stack Exchange in a single request.
       const data = await axios.get(`https://api.stackexchange.com/2.2/answers/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+console.log(data.data.items[0].owner.user_id);
 
+      const data2 = await axios.get(`https://api.stackexchange.com/2.2/users/${data.data.items[0].owner.user_id}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+
+console.log(data2);
       // Get the question title and the link from the returned question.
       // Push them onto each of their respective bounties in the array.
       data.data.items.map((item, index) => {
@@ -110,6 +115,7 @@ class BountyShow extends Component {
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
+    listenWeb3(accounts[0]);
 
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });

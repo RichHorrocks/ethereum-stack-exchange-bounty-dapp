@@ -15,6 +15,7 @@ import Head from '../../components/Head';
 import QuestionRow from '../../components/QuestionRow';
 import bounty from '../../contractInstance';
 import web3 from '../../getWeb3';
+import listenWeb3 from '../../listenWeb3';
 import Status from '../../components/Status';
 
 class ExploreBounty extends Component {
@@ -33,6 +34,7 @@ class ExploreBounty extends Component {
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
+    listenWeb3(accounts[0]);
 
     // Get the network ID.
     const networkId = await web3.eth.net.getId();

@@ -8,16 +8,10 @@ if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
   web3 = new Web3(window.web3.currentProvider);
   console.log('Using MM');
 
-  web3.currentProvider.publicConfigStore.on('update', ({ selectedAddress }) => {
-    //console.log({ selectedAddress });
-  });
-
 } else {
   // We are on the server, or the user isn't running MM.
   const provider = new Web3.providers.HttpProvider(
     'https://rinkeby.infura.io/JKWwDa2UBGnU0gjLB0Wm'
-
-    //'http://127.0.0.1:7545'
   );
   web3 = new Web3(provider);
   console.log('Using Infura');

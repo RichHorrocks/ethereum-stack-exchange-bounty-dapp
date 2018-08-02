@@ -12,6 +12,7 @@ import Layout from '../components/Layout';
 import Status from '../components/Status';
 import { Link } from '../routes';
 import web3 from '../getWeb3';
+import listenWeb3 from '../listenWeb3';
 
 class App extends Component {
   constructor() {
@@ -26,6 +27,7 @@ class App extends Component {
     // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
+    listenWeb3(accounts[0]);
 
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
