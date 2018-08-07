@@ -3,6 +3,7 @@ import { Table, Button } from 'semantic-ui-react';
 import { Link } from '../routes';
 import bounty from '../contractInstance';
 import web3 from '../getWeb3';
+import ens from '../getEns';
 import he from 'he';
 
 class QuestionRow extends Component {
@@ -28,7 +29,7 @@ class QuestionRow extends Component {
       <Row>
         <Cell>{bounty[1]}</Cell>
         <Cell><a target="_blank" href={bounty[7]}>{linkString}</a></Cell>
-        <Cell>{bounty[3].toUpperCase()}</Cell>
+        <Cell>{address.toUpperCase()}</Cell>
         <Cell>{web3.utils.fromWei(bounty[2], 'ether')}</Cell>
         <Cell>
           <Link route={`/bounties/${address}/${id}`}>
