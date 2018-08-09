@@ -23,8 +23,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         Cancelled
     }
 
-    // Tightly pack by putting ints together?
-    //
     struct Bounty {
         string description;
         uint questionId;
@@ -41,16 +39,9 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
     Bounty[] public bounties;
     mapping (address => uint256) public bountyCount;
     mapping (address => uint256) public awardedTotal;
-
     mapping (address => uint256) public answerCount;
     mapping (address => uint256) public acceptedCount;
     mapping (address => uint256) public wonTotal;
-
-    // Oracle code.
-    enum OracleQuery {
-        Question,
-        Answer
-    }
 
     struct OracleCallbackDetails {
         string desc;
@@ -59,17 +50,12 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         address bountyOwner;
         uint bountyIndex;
         uint answerId;
-        OracleQuery queryType;
     }
 
     mapping(bytes32 => OracleCallbackDetails) oracleDetails;
-    event newOraclizeQuery(string description);
-
+    event newOraclizeQuery(string description, bytes32 id, address caller);
     event OraclizeQueryFail(address caller);
     event OraclizeQuerySuccess(address caller);
-
-
-
 
     modifier isBountyOwner(uint _bountyIndex) {
         require(bounties[_bountyIndex].bountyOwner == msg.sender);
@@ -99,11 +85,8 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
     }
 
     function SEBounty() public {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
         owner = msg.sender;
     }
-
-
 
     function __callback(bytes32 myid, string result) public {
         require(msg.sender == oraclize_cbAddress());
@@ -112,43 +95,26 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
 
         if (bytes(result).length == 0 ||
             parseInt(result) != details.questionId) {
-            // Event to show error.
             OraclizeQueryFail(details.bountyOwner);
-
             delete oracleDetails[myid];
             revert();
         }
 
-        if (details.queryType == OracleQuery.Question) {
-            // Parse the result as an integer, and check it matches our question
-            // ID.
-            Bounty memory newBounty = Bounty({
-                description: '',
-                questionId: details.questionId,
-                bountyValue: details.bountyValue,
-                bountyOwner: details.bountyOwner,
-                stage: Stages.Opened,
-                answers: new uint[](0),
-                answerOwners: new address[](0),
-                acceptedAnswer: 0,
-                timePosted: now
-            });
+        Bounty memory newBounty = Bounty({
+            description: details.desc,
+            questionId: details.questionId,
+            bountyValue: details.bountyValue,
+            bountyOwner: details.bountyOwner,
+            stage: Stages.Opened,
+            answers: new uint[](0),
+            answerOwners: new address[](0),
+            acceptedAnswer: 0,
+            timePosted: now
+        });
 
-            // Create the bounty and add it to the public array of bounties.
-            bounties.push(newBounty);
-            bountyCount[details.bountyOwner]++;
+        bounties.push(newBounty);
+        bountyCount[details.bountyOwner]++;
 
-        } else if (oracleDetails[myid].queryType == OracleQuery.Answer) {
-            uint index = details.bountyIndex;
-            address sender = details.bountyOwner;
-
-            bounties[index].answers.push(details.answerId);
-            bounties[index].answerOwners.push(sender);
-            bounties[index].hasAnswered[sender] = true;
-            answerCount[sender]++;
-        }
-
-        // Event to show success.
         OraclizeQuerySuccess(details.bountyOwner);
         delete oracleDetails[myid];
     }
@@ -160,10 +126,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         // They must send the amount of ETH with their creation request.
         // This must be greater than nothing...
         require(msg.value > 0);
-
-        // Use an oracle to check that this question exists, and is not closed.
-        // Revert otherwise.
-
 
         string memory queryString = strConcat(
             "json(https://api.stackexchange.com/2.2/questions/",
@@ -178,49 +140,26 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
             msg.value,
             msg.sender,
             0,
-            0,
-            OracleQuery.Question);
+            0);
 
-        newOraclizeQuery("Oraclize BOUNTY query was sent.");
+        newOraclizeQuery("Oraclize query sent", oracleId, msg.sender);
     }
 
     function postAnswer(uint _bountyIndex, uint _answerId)
         public
+        atStage(_bountyIndex, Stages.Opened)
+        whenNotPaused()
     {
-        require(!bounties[_bountyIndex].hasAnswered[msg.sender]);
+        Bounty storage bountyRef = bounties[_bountyIndex];
+        require(!bountyRef.hasAnswered[msg.sender]);
 
-        // Use oracle to check if the posted question is valid for the given
-        // question.
-        // Use an oracle to check that this question exists, and is not closed.
-        // Revert otherwise.
+        bountyRef.answers.push(_answerId);
+        bountyRef.answerOwners.push(msg.sender);
+        bountyRef.hasAnswered[msg.sender] = true;
+        answerCount[msg.sender]++;
 
-
-        string memory queryString = strConcat(
-            "json(https://api.stackexchange.com/2.2/answers/",
-            uIntToStr(_answerId),
-            "?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ(().items[0].question_id");
-
-        bytes32 oracleId = oraclize_query("URL", queryString, 500000);
-
-        oracleDetails[oracleId] = OracleCallbackDetails(
-            '',
-            bounties[_bountyIndex].questionId,
-            0,
-            msg.sender,
-            _bountyIndex,
-            _answerId,
-            OracleQuery.Answer);
-
-        newOraclizeQuery("Oraclize ANSWER query was sent.");
+        AnswerPosted(_bountyIndex, msg.sender, _answerId);
     }
-
-
-
-
-
-
-
-
 
     function awardBounty(uint _bountyIndex, uint _answerIndex)
         public
@@ -231,7 +170,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         bounties[_bountyIndex].stage = Stages.Awarded;
         bounties[_bountyIndex].acceptedAnswer = _answerIndex;
 
-        // Use Safemath here.
         awardedTotal[msg.sender] =
             awardedTotal[msg.sender].add(bounties[_bountyIndex].bountyValue);
         address winner = bounties[_bountyIndex].answerOwners[_answerIndex];
@@ -281,16 +219,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         BountyCancelled(_bountyIndex, msg.sender);
     }
 
-
-    function getBountyCount()
-        public
-        view
-        returns (uint)
-    {
-        return bounties.length;
-    }
-
-
     // Answer functions.
     function cancelAnswer(uint _bountyIndex, uint _answerIndex)
         public
@@ -298,19 +226,27 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         atStage(_bountyIndex, Stages.Opened)
         whenNotPaused()
     {
-        uint len = bounties[_bountyIndex].answers.length;
+        Bounty storage bountyRef = bounties[_bountyIndex];
+        uint len = bountyRef.answers.length;
 
         if (len > 1) {
-            bounties[_bountyIndex].answers[_answerIndex] =
-                bounties[_bountyIndex].answers[len - 1];
-            bounties[_bountyIndex].answerOwners[_answerIndex] =
-                bounties[_bountyIndex].answerOwners[len - 1];
+            bountyRef.answers[_answerIndex] = bountyRef.answers[len - 1];
+            bountyRef.answerOwners[_answerIndex] =
+                bountyRef.answerOwners[len - 1];
         }
-        bounties[_bountyIndex].answers.length--;
-        bounties[_bountyIndex].answerOwners.length--;
+        bountyRef.answers.length--;
+        bountyRef.answerOwners.length--;
 
         answerCount[msg.sender]--;
-        bounties[_bountyIndex].hasAnswered[msg.sender] = false;
+        bountyRef.hasAnswered[msg.sender] = false;
+    }
+
+    function getBountyCount()
+        public
+        view
+        returns (uint)
+    {
+        return bounties.length;
     }
 
     function getAnswers(uint _bountyIndex)
@@ -337,6 +273,14 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return bounties[_bountyIndex].answers.length;
     }
 
+    function getBalance()
+        public
+        view
+        returns (uint)
+    {
+        return this.balance;
+    }
+
     function withdrawInEmergency()
         public
         whenPaused()
@@ -346,7 +290,6 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
 
         EmergencyWithdrawal(msg.sender, balance);
     }
-
 
     function uIntToStr(uint i)
         internal
@@ -369,9 +312,8 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return string(bstr);
     }
 
-    function () public payable { }
-
-    function getBalance() public view returns (uint) {
-        return this.balance;
-    }
+    function ()
+        public
+        payable
+    { }
 }

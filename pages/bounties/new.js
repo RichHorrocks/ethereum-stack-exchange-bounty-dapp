@@ -99,6 +99,16 @@ class BountySearch2 extends Component {
 
         var bountyEvents = new web3Infura.eth.Contract(SEBounty.abi, '0xf0bf634d51292e9c580c74add0b2828c9da8d680');
 
+        // contract.allEvents({
+        //     fromBlock: 'latest',
+        // }, function (error, event) {
+        //     if (error)
+        //         alert("error while subscribing to event")
+        //     console.log(event)
+        //     }
+        // })
+        //https://ethereum.stackexchange.com/questions/42800/react-incorporating-event-listening-into-web3js-promise
+
         bountyEvents.events.OraclizeQuerySuccess({}, (err, result) => {
           if (!err) {
             console.log("LOGGED -- " + result);
