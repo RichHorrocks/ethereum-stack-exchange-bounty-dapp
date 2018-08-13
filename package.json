@@ -18,7 +18,7 @@
     "react-dom": "^16.4.1",
     "react-scripts": "1.1.4",
     "react-web3-network-status": "^1.0.0",
-    "semantic-ui-css": "^2.3.2",
+    "semantic-ui-css": "^2.3.3",
     "semantic-ui-react": "^0.82.0",
     "truffle-assertions": "^0.3.1",
     "truffle-contract": "^3.0.6",

@@ -165,6 +165,7 @@ console.log(data2);
     return (
       <Layout>
         <Container>
+          <br />
           <Head
             title="Bounty Details"
             userAccount={this.state.userAccount}

@@ -111,6 +111,7 @@ class ExploreBounty extends Component {
     return (
       <Layout>
         <Container>
+          <br />
           <Head
             title="Open Bounties"
             type="explore"

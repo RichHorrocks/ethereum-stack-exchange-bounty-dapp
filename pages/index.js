@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import {
   Button,
-  Container,
   Segment,
   Header,
   Grid,
   Label,
   Icon,
+  Image,
 } from 'semantic-ui-react';
 import Layout from '../components/Layout';
 import Status from '../components/Status';
@@ -24,7 +24,6 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    // Get the brower users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
@@ -40,7 +39,7 @@ class App extends Component {
           vertical
           inverted
           textAlign='center'
-          style={{ height: '100vh' }}>
+          style={{ height: '100vh', backgroundImage: `url('https://gateway.ipfs.io/ipfs/QmNZnBRq6cXauYLYhTeJSRioJCdo3NpbmhnRcWXhLwNEzW')` }}>
           <Grid
             textAlign='center'
             style={{ height: '100%' }}
@@ -49,7 +48,7 @@ class App extends Component {
               <Header
                 textAlign='center'
                 inverted
-                style={{ fontSize: '2.5em' }}
+                style={{ fontSize: '3em' }}
                 size='huge'>
                 Welcome to the Ethereum Stack Exchange Bounty homepage
               </Header>
@@ -94,6 +93,12 @@ class App extends Component {
               <Label pointing>
                 <Icon name='mail' /> {this.state.userAccount}
               </Label>
+              <br />
+              <br />
+              <div>
+                Main image hosted with
+                <Image src='/static/ipfs.png' size="mini" avatar />
+              </div>
             </Grid.Column>
           </Grid>
         </Segment>

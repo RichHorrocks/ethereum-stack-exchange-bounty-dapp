@@ -8,7 +8,7 @@ SEBountyContract.setProvider(web3.currentProvider);
 const instance = SEBountyContract.at('0xb5ff4191111c21d4cf9108fe67c27d0c804d91c0');
 
 
-//  Add Oraclize above here.
+//  Added Oraclize after here.
 // 0xf0bf634d51292e9c580c74add0b2828c9da8d680
 // 0x6d2b673ff4a1598c1d5fb739aa5cc231cc8df7cb
 // 0x195a67b4b7bf41ec8b9f3c9ddb0f4a9f6a315dee

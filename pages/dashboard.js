@@ -185,6 +185,7 @@ class Dashboard extends Component {
     return (
       <Layout>
         <Container>
+          <br />
           <Head
             title="Your Dashboard"
             type="dashboard"
