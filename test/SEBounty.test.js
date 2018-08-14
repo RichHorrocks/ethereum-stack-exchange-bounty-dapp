@@ -5,13 +5,16 @@ const truffleAssert = require('truffle-assertions');
 contract('SEBounty', (accounts) => {
   let bounty;
   let tx;
-  const bountyAccount = accounts[0];
-  const answerAccount1 = accounts[1];
-  const answerAccount2 = accounts[2];
+  const bountyAccount1 = accounts[0];
+  const bountyAccount2 = accounts[1];
+  const answerAccount1 = accounts[2];
+  const answerAccount2 = accounts[3];
 
   const bountyValue = 50000000000000000;
-  const bountyDescription = 'This is the bouny test string';
   const bountyQuestionId = 3;
+  const bountyDescription1 = 'This is the first bounty test string';
+  const bountyDescription2 = 'This is the second bounty test string';
+  const bountyDescription3 = 'This is the third bounty test string';
 
   // Get a reference to the deployed contract before each test.
   beforeEach('setup contract for each test', async () => {
@@ -34,18 +37,17 @@ contract('SEBounty', (accounts) => {
     });
 
     describe('b. Posting a bounty', () => {
-
       it('creates a new bounty and calls Oraclize', async function () {
         tx = await bounty.postBounty(
-          bountyDescription,
+          bountyDescription1,
           bountyQuestionId,
           {
             value: bountyValue,
-            from: bountyAccount,
+            from: bountyAccount1,
           });
 
         truffleAssert.eventEmitted(tx, 'newOraclizeQuery', (ev) => {
-          return ev.caller === bountyAccount;
+          return ev.caller === bountyAccount1;
         });
 
         console.log('Waiting for the Oraclize callback to be called...');
@@ -54,24 +56,60 @@ contract('SEBounty', (accounts) => {
 
         // Check the bounty is created.
         const newBounty = await bounty.bounties.call(0);
-        assert.equal(newBounty[0], bountyDescription);
+        assert.equal(newBounty[0], bountyDescription1);
         assert.equal(newBounty[1].toNumber(), bountyQuestionId);
         assert.equal(newBounty[2].toNumber(), bountyValue);
-        assert.equal(newBounty[3], bountyAccount);
-
-        // Check the bounty value is added to the contract.
-        //const balance = await web3.eth.getBalance(bounty.address);
-        //assert.equal(balance.toNumber(), 50000000000000000);
-        //const foo = await bounty.cancelBounty(0, { from: accounts[0] });
-
+        assert.equal(newBounty[3], bountyAccount1);
       });
 
-      it('creates a new bounty and calls Oraclize', async function () {
+      it('creates a second new bounty and calls Oraclize', async function () {
+        tx = await bounty.postBounty(
+          bountyDescription2,
+          bountyQuestionId,
+          {
+            value: bountyValue,
+            from: bountyAccount2,
+          });
 
+        truffleAssert.eventEmitted(tx, 'newOraclizeQuery', (ev) => {
+          return ev.caller === bountyAccount2;
+        });
+
+        console.log('Waiting for the Oraclize callback to be called...');
+        //this.timeout(20 * 1000);
+        await new Promise(r => setTimeout(() => r(), 20000));
+
+        // Check the bounty is created.
+        const newBounty = await bounty.bounties.call(1);
+        assert.equal(newBounty[0], bountyDescription2);
+        assert.equal(newBounty[1].toNumber(), bountyQuestionId);
+        assert.equal(newBounty[2].toNumber(), bountyValue);
+        assert.equal(newBounty[3], bountyAccount2);
       });
 
-      it('creates a new bounty and calls Oraclize', async function () {
+      it('creates a third new bounty and calls Oraclize', async function () {
+        tx = await bounty.postBounty(
+          bountyDescription3,
+          bountyQuestionId,
+          {
+            value: bountyValue,
+            from: bountyAccount2,
+          });
 
+        truffleAssert.eventEmitted(tx, 'newOraclizeQuery', (ev) => {
+          return ev.caller === bountyAccount2;
+        });
+
+        console.log('Waiting for the Oraclize callback to be called...');
+        //this.timeout(20 * 1000);
+        await new Promise(r => setTimeout(() => r(), 20000));
+
+        // Check the bounty is created.
+        const newBounty = await bounty.bounties.call(2);
+        assert.equal(newBounty[0], bountyDescription3);
+        assert.equal(newBounty[1].toNumber(), bountyQuestionId);
+        assert.equal(newBounty[2].toNumber(), bountyValue);
+        assert.equal(newBounty[3], bountyAccount2);
       });
     });
 
@@ -109,8 +147,6 @@ contract('SEBounty', (accounts) => {
           assert(err.message.indexOf('revert') >= 0);
         }
       });
-
-
     });
 
     describe('d. Cancelling an answer', () => {
@@ -129,12 +165,19 @@ contract('SEBounty', (accounts) => {
         const count = await bounty.getAnswerCount.call(0);
         assert.equal(count.toNumber(), 1);
       })
-
     });
 
     describe('e. Awarding a bounty', () => {
+      it("stops a user awarding another user's bounty", async () => {
+        try {
+          await bounty.awardBounty(0, 0, { from: bountyAccount2 });
+        } catch (err) {
+          assert(err.message.indexOf('revert') >= 0);
+        }
+      });
+
       it('awards a bounty', async () => {
-        tx = await bounty.awardBounty(0, 0, {from: bountyAccount });
+        tx = await bounty.awardBounty(0, 0, {from: bountyAccount1 });
 
         truffleAssert.eventEmitted(tx, 'BountyAwarded');
       });
@@ -150,141 +193,96 @@ contract('SEBounty', (accounts) => {
     });
 
     describe('f. Claiming a bounty', () => {
+      it("stops a user claiming another user's bounty", async () => {
+          try {
+            await bounty.claimBounty(0, { from: answerAccount2 });
+          } catch (err) {
+            assert(err.message.indexOf('revert') >= 0);
+          }
+      });
 
+      it("lets a user claim their bounty", async () => {
+        tx = await bounty.claimBounty(0, {from: answerAccount1 });
 
+        truffleAssert.eventEmitted(tx, 'BountyClaimed');
+      });
     });
 
     describe('g. Cancelling a bounty', () => {
+      it("stops a user cancelling another user's bounty", async () => {
+          try {
+            await bounty.cancelBounty(1, { from: bountyAccount1 });
+          } catch (err) {
+            assert(err.message.indexOf('revert') >= 0);
+          }
+      });
 
+      it("checks that a user can cancel their bounty", async () => {
+        tx = await bounty.cancelBounty(1, { from: bountyAccount2 });
 
+        truffleAssert.eventEmitted(tx, 'BountyCancelled');
+      });
+
+      it("checks that a user can't cancel an already-cancelled bounty",
+         async () => {
+        try {
+          await bounty.cancelBounty(1, { from: bountyAccount2 });
+        } catch (err) {
+          assert(err.message.indexOf('revert') >= 0);
+        }
+      });
     });
-
   });
 
-
-
+  // describe('2. SafeMath Library', () => {
+  //   it('prevents overflow', () => {
   //
+  //
+  //   });
+  //
+  //   it('prevents underflow', () => {
+  //
+  //
+  //   });
   // });
-  //
-  //
-
-  //
-
-  //
-  //
-  // it("checks that a users can't claim another user's bounty", async () => {
-  //   try {
-  //     const receipt = await bounty.claimBounty(0, { from: accounts[2] });
-  //   } catch (err) {
-  //     assert(err.message.indexOf('revert') >= 0);
-  //   }
-  // });
-  //
-  // it('allows the bounty winner to claim the bounty', async () => {
-  //   const receipt = await bounty.claimBounty(0, { from: accounts[1] });
-  //
-  //   // Check a log is written.
-  //   assert.equal(
-  //     receipt.logs.length,
-  //     1,
-  //     'triggers one event');
-  //   assert.equal(
-  //     receipt.logs[0].event,
-  //     'BountyClaimed',
-  //     'should be a "BountyClaimed" event');
-  // });
-
-  // it('cancels a bounty', async () => {
-  //   // Attempt to cancel the open bounty from a non-owner account.
-  //   try {
-  //     await bounty.cancelBounty(0, { from: accounts[1] });
-  //   } catch (err) {
-  //     assert(err.message.indexOf('revert') >= 0);
-  //   }
-  //
-  //   // Attempt to cancel the open bounty from the owner account.
-  //   const receipt = await bounty.cancelBounty(0, { from: accounts[0] });
-  //
-  //   // Check a log is written.
-  //   assert.equal(
-  //     receipt.logs.length,
-  //     1,
-  //     'triggers one event');
-  //   assert.equal(
-  //     receipt.logs[0].event,
-  //     'BountyCancelled',
-  //     'should be a "BountyCancelled" event');
-  //
-  //   // Check the value held by the contract is now 0.
-  //   //const balance = await web3.eth.getBalance(bounty.address);
-  //   //assert.equal(balance.toNumber(), 0);
-  // });
-
-  describe('2. SafeMath Library', () => {
-    it('prevents overflow', () => {
-
-
-    });
-
-    it('prevents underflow', () => {
-
-
-    });
-
-  });
 
   describe('3. Pausable Contract', () => {
-    it('stops a non-owner pausing the contract', () => {
-
-
-    });
-
-    it('lets the owner pause the contract in an emergency', async () => {
-      // Pause the contract.
-      const tx = await bounty.pause({ from: accounts[0] });
-
-      truffleAssert.eventEmitted(tx, 'Pause');
-
-      // Attempt to post a bounty.
+    it('stops a non-owner pausing the contract', async () => {
       try {
-        await bounty.postBounty(
-          bountyDescription,
-          bountyQuestionId,
-          {
-            from: bountyAccount,
-            value: bountyValue
-          });
+        await bounty.pause({ from: accounts[1] });
       } catch (err) {
         assert(err.message.indexOf('revert') >= 0);
       }
     });
 
-    it('stops a non-owner unpausing the contract', () => {
+    it('lets the owner pause the contract in an emergency', async () => {
+      // Pause the contract.
+      tx = await bounty.pause({ from: accounts[0] });
 
-
+      truffleAssert.eventEmitted(tx, 'Pause');
     });
 
-    it('lets the owner unpause the contract', () => {
-
-
+    it('stops a non-owner unpausing the contract', async () => {
+      try {
+        await bounty.unpause({ from: accounts[1] });
+      } catch (err) {
+        assert(err.message.indexOf('revert') >= 0);
+      }
     });
 
+    it('lets the owner unpause the contract', async () => {
+      tx = await bounty.unpause({ from: accounts[0] });
+      truffleAssert.eventEmitted(tx, 'Unpause');
+    });
   });
 
   describe('4. Destructible Contract', () => {
-
-    it('stops a non-owner killing the contract', () => {
-
-
+    it('stops a non-owner killing the contract', async () => {
+      try {
+        await bounty.destroy({ from: accounts[1] });
+      } catch (err) {
+        assert(err.message.indexOf('revert') >= 0);
+      }
     });
-
-    it('lets the owner kill the contract', () => {
-
-
-    });
-
-
   });
-
-
 });
