@@ -21,6 +21,7 @@ import axios from 'axios';
 import web3 from '../../getWeb3';
 import listenWeb3 from '../../listenWeb3';
 import moment from 'moment';
+import he from 'he';
 
 class BountyShow extends Component {
   state = {
@@ -59,7 +60,7 @@ class BountyShow extends Component {
     // Get the question title and the link from the returned question.
     // Push them onto each of their respective bounties in the array.
     this.setState({
-      bountyTitle: data.data.items[0].title,
+      bountyTitle: he.decode(data.data.items[0].title),
       bountyLink: data.data.items[0].link,
     });
   }

@@ -1,6 +1,7 @@
 const SEBounty = artifacts.require('./SEBounty');
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
+const web3 = require('web3');
 
 contract('SEBounty', (accounts) => {
   let bounty;
@@ -11,6 +12,8 @@ contract('SEBounty', (accounts) => {
   const answerAccount2 = accounts[3];
 
   const bountyValue = 50000000000000000;
+  const oraclizeFee = web3.utils.toWei('0.0100355', 'ether');
+  const oraclizeWaitTime = 25000;
   const bountyQuestionId = 3;
   const bountyDescription1 = 'This is the first bounty test string';
   const bountyDescription2 = 'This is the second bounty test string';
@@ -23,13 +26,6 @@ contract('SEBounty', (accounts) => {
 
   describe('1. Bounty Contract', () => {
     describe('a. Initialisation', () => {
-      it('funds the contract', async function () {
-        bounty.sendTransaction({
-          value: web3.toWei(10, 'ether'),
-          from: accounts[0],
-        });
-      });
-
       it('has an owner', async function () {
         const owner = await bounty.owner.call();
         assert.equal(owner, accounts[0]);
@@ -37,12 +33,27 @@ contract('SEBounty', (accounts) => {
     });
 
     describe('b. Posting a bounty', () => {
+      it("prevents creating a bounty that doesn't include the Oraclize fee",
+         async function () {
+        try {
+          await bounty.postBounty(
+            bountyDescription1,
+            bountyQuestionId,
+            {
+              value: oraclizeFee,
+              from: bountyAccount1,
+            });
+        } catch (err) {
+          assert(err.message.indexOf('revert') >= 0);
+        }
+      });
+
       it('creates a new bounty and calls Oraclize', async function () {
         tx = await bounty.postBounty(
           bountyDescription1,
           bountyQuestionId,
           {
-            value: bountyValue,
+            value: Number(bountyValue) + Number(oraclizeFee),
             from: bountyAccount1,
           });
 
@@ -51,10 +62,8 @@ contract('SEBounty', (accounts) => {
         });
 
         console.log('Waiting for the Oraclize callback to be called...');
-        //this.timeout(20 * 1000);
-        await new Promise(r => setTimeout(() => r(), 20000));
+        await new Promise(r => setTimeout(() => r(), oraclizeWaitTime));
 
-        // Check the bounty is created.
         const newBounty = await bounty.bounties.call(0);
         assert.equal(newBounty[0], bountyDescription1);
         assert.equal(newBounty[1].toNumber(), bountyQuestionId);
@@ -67,7 +76,7 @@ contract('SEBounty', (accounts) => {
           bountyDescription2,
           bountyQuestionId,
           {
-            value: bountyValue,
+            value: Number(bountyValue) + Number(oraclizeFee),
             from: bountyAccount2,
           });
 
@@ -76,10 +85,8 @@ contract('SEBounty', (accounts) => {
         });
 
         console.log('Waiting for the Oraclize callback to be called...');
-        //this.timeout(20 * 1000);
-        await new Promise(r => setTimeout(() => r(), 20000));
+        await new Promise(r => setTimeout(() => r(), oraclizeWaitTime));
 
-        // Check the bounty is created.
         const newBounty = await bounty.bounties.call(1);
         assert.equal(newBounty[0], bountyDescription2);
         assert.equal(newBounty[1].toNumber(), bountyQuestionId);
@@ -92,7 +99,7 @@ contract('SEBounty', (accounts) => {
           bountyDescription3,
           bountyQuestionId,
           {
-            value: bountyValue,
+            value: Number(bountyValue) + Number(oraclizeFee),
             from: bountyAccount2,
           });
 
@@ -101,10 +108,8 @@ contract('SEBounty', (accounts) => {
         });
 
         console.log('Waiting for the Oraclize callback to be called...');
-        //this.timeout(20 * 1000);
-        await new Promise(r => setTimeout(() => r(), 20000));
+        await new Promise(r => setTimeout(() => r(), oraclizeWaitTime));
 
-        // Check the bounty is created.
         const newBounty = await bounty.bounties.call(2);
         assert.equal(newBounty[0], bountyDescription3);
         assert.equal(newBounty[1].toNumber(), bountyQuestionId);
@@ -122,7 +127,6 @@ contract('SEBounty', (accounts) => {
           return ev.answerOwner === answerAccount1;
         });
 
-        // Check the answer count.
         const count = await bounty.getAnswerCount.call(0);
         assert.equal(count.toNumber(), 1);
       });
@@ -135,7 +139,6 @@ contract('SEBounty', (accounts) => {
           return ev.answerOwner === answerAccount2;
         });
 
-        // Check the answer count.
         const count = await bounty.getAnswerCount.call(0);
         assert.equal(count.toNumber(), 2);
       });
@@ -161,7 +164,6 @@ contract('SEBounty', (accounts) => {
       it('cancels an answer to an open bounty', async () => {
         await bounty.cancelAnswer(0, 1, { from: answerAccount2 });
 
-        // Check the answer count.
         const count = await bounty.getAnswerCount.call(0);
         assert.equal(count.toNumber(), 1);
       })
@@ -234,19 +236,7 @@ contract('SEBounty', (accounts) => {
     });
   });
 
-  // describe('2. SafeMath Library', () => {
-  //   it('prevents overflow', () => {
-  //
-  //
-  //   });
-  //
-  //   it('prevents underflow', () => {
-  //
-  //
-  //   });
-  // });
-
-  describe('3. Pausable Contract', () => {
+  describe('2. Pausable Contract', () => {
     it('stops a non-owner pausing the contract', async () => {
       try {
         await bounty.pause({ from: accounts[1] });
@@ -256,9 +246,7 @@ contract('SEBounty', (accounts) => {
     });
 
     it('lets the owner pause the contract in an emergency', async () => {
-      // Pause the contract.
       tx = await bounty.pause({ from: accounts[0] });
-
       truffleAssert.eventEmitted(tx, 'Pause');
     });
 
@@ -276,7 +264,7 @@ contract('SEBounty', (accounts) => {
     });
   });
 
-  describe('4. Destructible Contract', () => {
+  describe('3. Destructible Contract', () => {
     it('stops a non-owner killing the contract', async () => {
       try {
         await bounty.destroy({ from: accounts[1] });

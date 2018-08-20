@@ -16,7 +16,6 @@ import QuestionRow from '../../components/QuestionRow';
 import bounty from '../../contractInstance';
 import web3 from '../../getWeb3';
 import listenWeb3 from '../../listenWeb3';
-import ens from '../../getEns';
 import Status from '../../components/Status';
 
 class ExploreBounty extends Component {
@@ -78,18 +77,6 @@ class ExploreBounty extends Component {
           }
         }
       });
-
-      // Check whether any of the bounty owner addresses can be resolved to ens
-      // names.
-      for (var i = 0; i < bountyCount; i++) {
-        try {
-          var resolver = await ens.resolver('richard.test');
-          console.log(await resolver.addr());
-          console.log(await ens.reverse('0x52f0995a00472a988ab3b4bee04c6085c8a20049').name());
-        } catch (error) {
-          console.log(error);
-        }
-      }
     }
 
     this.setState({ bountyCount, bounties, isLoading: false });
@@ -127,7 +114,7 @@ class ExploreBounty extends Component {
                 <Row>
                   <HeaderCell>SE ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
-                  <HeaderCell>Owner Address / ENS Name</HeaderCell>
+                  <HeaderCell>Owner Address</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>

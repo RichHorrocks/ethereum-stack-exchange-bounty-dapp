@@ -6,7 +6,6 @@
     "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
     "chai": "^4.1.2",
-    "ethereum-ens": "^0.7.4",
     "formsy-react": "^1.1.4",
     "formsy-semantic-ui-react": "^0.3.3",
     "he": "^1.1.1",

@@ -6,8 +6,19 @@ import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './oraclizeAPI_0.5.sol';
 
+/**
+ * @title  SEBounty
+ * @author Richard Horrocks
+ * @notice Contract to allow ETH bounties to be placed on existing questions
+ *         from the Ethereum Stack Exchange site, and answers submitted.
+ * @dev    See <github_link>
+ */
 contract SEBounty is Destructible, Pausable, usingOraclize {
+    /**
+     * @notice Use the OpenZeppelin SafeMath library for basic uint operations.
+     */
     using SafeMath for uint256;
+
 
     event BountyOpened(uint bountyIndex, address bountyOwner, uint questionId);
     event BountyAwarded(uint bountyIndex);
@@ -52,6 +63,8 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         uint answerId;
     }
 
+    uint256 oraclizeFee = 0.0100355 ether;
+
     mapping(bytes32 => OracleCallbackDetails) oracleDetails;
     event newOraclizeQuery(string description, bytes32 id, address caller);
     event OraclizeQueryFail(address caller);
@@ -84,19 +97,42 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         _;
     }
 
-    function SEBounty() public {
+    /**
+     * @notice  Contract constructor function.
+     * @dev     Note that using Oraclize has imposed the use of an earlier
+     *          compiler version, which doesn't support the "constructor"
+     *          keyword. We resort to defining the constructor as a function.
+     */
+    function SEBounty()
+        public
+    {
         owner = msg.sender;
     }
 
-    function __callback(bytes32 myid, string result) public {
+    /**
+     * Bounty functions.
+     */
+
+    /**
+     * @notice  Oraclize callback function.
+     * @dev     This is called by Oraclize, so the msg.sender value will be
+     *          different to the one that called postBounty.
+     * @param   _myId - The Oraclize query ID associated with this callback
+     *           call.
+     * @param   _result - The result of the Oraclize query.
+     */
+    function __callback(bytes32 _myId, string _result)
+        public
+        whenNotPaused()
+    {
         require(msg.sender == oraclize_cbAddress());
 
-        OracleCallbackDetails storage details = oracleDetails[myid];
+        OracleCallbackDetails storage details = oracleDetails[_myId];
 
-        if (bytes(result).length == 0 ||
-            parseInt(result) != details.questionId) {
+        if (bytes(_result).length == 0 ||
+            parseInt(_result) != details.questionId) {
             OraclizeQueryFail(details.bountyOwner);
-            delete oracleDetails[myid];
+            delete oracleDetails[_myId];
             revert();
         }
 
@@ -116,16 +152,23 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         bountyCount[details.bountyOwner]++;
 
         OraclizeQuerySuccess(details.bountyOwner);
-        delete oracleDetails[myid];
+        delete oracleDetails[_myId];
     }
 
+    /**
+     * @notice  Post a bounty on a Stack Exchange question.
+     * @dev     This function creates an Oraclize query to check whether the
+     *          passed in question ID is a valid Stack Exchange question.
+     * @param   _description - A set of instructions written by the bounty
+                poster explaining what an ideal answer should contain.
+     * @param   _questionId - The Stack Exchange question ID.
+     */
     function postBounty(string _description, uint _questionId)
         public
         payable
+        whenNotPaused()
     {
-        // They must send the amount of ETH with their creation request.
-        // This must be greater than nothing...
-        require(msg.value > 0);
+        require(msg.value > oraclizeFee);
 
         string memory queryString = strConcat(
             "json(https://api.stackexchange.com/2.2/questions/",
@@ -137,7 +180,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         oracleDetails[oracleId] = OracleCallbackDetails(
             _description,
             _questionId,
-            msg.value,
+            msg.value - oraclizeFee,
             msg.sender,
             0,
             0);
@@ -145,22 +188,15 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         newOraclizeQuery("Oraclize query sent", oracleId, msg.sender);
     }
 
-    function postAnswer(uint _bountyIndex, uint _answerId)
-        public
-        atStage(_bountyIndex, Stages.Opened)
-        whenNotPaused()
-    {
-        Bounty storage bountyRef = bounties[_bountyIndex];
-        require(!bountyRef.hasAnswered[msg.sender]);
-
-        bountyRef.answers.push(_answerId);
-        bountyRef.answerOwners.push(msg.sender);
-        bountyRef.hasAnswered[msg.sender] = true;
-        answerCount[msg.sender]++;
-
-        AnswerPosted(_bountyIndex, msg.sender, _answerId);
-    }
-
+    /**
+     * @notice  Award a bounty to a particular answer.
+     * @dev     This must only be called by the owner of the open bounty. Again,
+     *          knowing the index of each answer is made easier by using an
+     *          appropriate front-end site.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @param   _answerIndex - The index into the array of answers associated
+     *          with this bounty.
+     */
     function awardBounty(uint _bountyIndex, uint _answerIndex)
         public
         isBountyOwner(_bountyIndex)
@@ -180,7 +216,12 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         BountyAwarded(_bountyIndex);
     }
 
-
+    /**
+     * @notice  Claim a bounty that has been awarded.
+     * @dev     This must only be called by the owner of the winning answer.
+     *          This function uses the Checks-Effects-Interactions pattern.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     */
     function claimBounty(uint _bountyIndex)
         public
         isAcceptedAnswerOwner(_bountyIndex)
@@ -196,7 +237,11 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         BountyClaimed(_bountyIndex, msg.sender);
     }
 
-
+    /**
+     * @notice  Cancel an open bounty.
+     * @dev     This must only be called by the owner of the open bounty.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     */
     function cancelBounty(uint _bountyIndex)
         public
         isBountyOwner(_bountyIndex)
@@ -219,7 +264,43 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         BountyCancelled(_bountyIndex, msg.sender);
     }
 
-    // Answer functions.
+    /**
+     * Answer functions.
+     */
+
+    /**
+     * @notice  Post an answer on an existing bounty.
+     * @dev     Calling this function requires the user to know the index of the
+     *          bounty they're answering. This is made much easier by using an
+     *          appropriate front-end site.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @param   _answerId - The ID of the answer in Stack Exchange.
+     */
+    function postAnswer(uint _bountyIndex, uint _answerId)
+        public
+        atStage(_bountyIndex, Stages.Opened)
+        whenNotPaused()
+    {
+        Bounty storage bountyRef = bounties[_bountyIndex];
+        require(!bountyRef.hasAnswered[msg.sender]);
+
+        bountyRef.answers.push(_answerId);
+        bountyRef.answerOwners.push(msg.sender);
+        bountyRef.hasAnswered[msg.sender] = true;
+        answerCount[msg.sender]++;
+
+        AnswerPosted(_bountyIndex, msg.sender, _answerId);
+    }
+
+    /**
+     * @notice  Cancel an answer previously posted on an open bounty.
+     * @dev     This must only be called by the owner of the answer. Again,
+     *          knowing the index of each answer is made easier by using an
+     *          appropriate front-end site.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @param   _answerIndex - The index into the array of answers associated
+     *          with this bounty.
+     */
     function cancelAnswer(uint _bountyIndex, uint _answerIndex)
         public
         isAnswerOwner(_bountyIndex, _answerIndex)
@@ -241,6 +322,15 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         bountyRef.hasAnswered[msg.sender] = false;
     }
 
+    /**
+     * Getter functions. (Those not automatically generated by the compiler.)
+     */
+
+    /**
+     * @notice  Get the total number of open bounties.
+     * @dev     The same could be achieved by having a state variable.
+     * @return  The number of open bounties.
+     */
     function getBountyCount()
         public
         view
@@ -249,6 +339,11 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return bounties.length;
     }
 
+    /**
+     * @notice  Get the answers sumitted for a bounty.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @return  An array of answer IDs.
+     */
     function getAnswers(uint _bountyIndex)
         public
         view
@@ -257,6 +352,11 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return bounties[_bountyIndex].answers;
     }
 
+    /**
+     * @notice  Get the owner addresses of answers sumitted for a bounty.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @return  An array of addresses equating to the answer owners.
+     */
     function getAnswerOwners(uint _bountyIndex)
         public
         view
@@ -265,6 +365,11 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return bounties[_bountyIndex].answerOwners;
     }
 
+    /**
+     * @notice  Get the number of answers sumitted for a bounty.
+     * @param   _bountyIndex - The index into the array of open bounties.
+     * @return  The number of answers for this bounty.
+     */
     function getAnswerCount(uint _bountyIndex)
         public
         view
@@ -273,14 +378,30 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         return bounties[_bountyIndex].answers.length;
     }
 
+    /**
+     * Ether functions.
+     */
+
+    /**
+     * @notice  Get the total bounty balance held by the contract.
+     * @dev     This must only be callable by the contract owner.
+     * @return  The contract balance, in wei.
+     */
     function getBalance()
         public
+        onlyOwner
         view
         returns (uint)
     {
         return this.balance;
     }
 
+    /**
+     * @notice  Withdraw the contract's balance in an emergency.
+     * @dev     This can only be called if the contract has been paused, answer
+     *          only by the contract owner. (onlyOwner is inherited from the
+     *          Pausable contract, so not explicitly set here.)
+     */
     function withdrawInEmergency()
         public
         whenPaused()
@@ -291,6 +412,23 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         EmergencyWithdrawal(msg.sender, balance);
     }
 
+    /**
+     * @notice  Fallback function to accept ether sent directly to the contract.
+     */
+    function ()
+        public
+        payable
+    { }
+
+    /**
+     * Internal helper functions.
+     */
+
+     /**
+      * @notice  Create a string representation of a number.
+      * @param   i - The integer to convert.
+      * @return  The string representation.
+      */
     function uIntToStr(uint i)
         internal
         pure
@@ -311,9 +449,4 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         }
         return string(bstr);
     }
-
-    function ()
-        public
-        payable
-    { }
 }

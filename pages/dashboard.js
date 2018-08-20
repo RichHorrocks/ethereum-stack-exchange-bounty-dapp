@@ -79,7 +79,6 @@ class Dashboard extends Component {
           answerBounties.push(JSON.parse(JSON.stringify(bounties[i])));
 
           answerBounties[answerBounties.length - 1].push(JSON.parse(JSON.stringify(answers[bounties[i][5]])));
-
         }
       }
     }
@@ -96,17 +95,10 @@ class Dashboard extends Component {
       // Get the questions from Stack Exchange in a single request.
       const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
-      // Get the question title and the link from the returned question.
-      // Push them onto each of their respective bounties in the array.
-    //  data.data.items.map((item, index) => {
-    //    userBounties[index].push(item.link);
-    //    userBounties[index].push(item.title);
-    //  });
-
-      // It's possible multiple bounties are open for the same question ID.
+      // It's possible multiple bounties are open for the same question ID, and // owned by the same user.
       // Iterate through all the bounties... Is there a better way than this?
       data.data.items.map((item, index) => {
-        for (var i = 0; i < bountyCount; i++) {
+        for (var i = 0; i < userBounties.length; i++) {
           if (userBounties[i][1] == item.question_id) {
             userBounties[i].push(item.link);
             userBounties[i].push(item.title);
@@ -205,7 +197,7 @@ class Dashboard extends Component {
                 <Row>
                   <HeaderCell>SE ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
-                  <HeaderCell>Owner Address / ENS Name</HeaderCell>
+                  <HeaderCell>Owner Address</HeaderCell>
                   <HeaderCell>Bounty Value</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>

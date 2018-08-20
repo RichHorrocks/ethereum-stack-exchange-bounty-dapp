@@ -3,7 +3,6 @@ import { Table, Button } from 'semantic-ui-react';
 import { Link } from '../routes';
 import bounty from '../contractInstance';
 import web3 from '../getWeb3';
-import ens from '../getEns';
 import he from 'he';
 
 class QuestionRow extends Component {

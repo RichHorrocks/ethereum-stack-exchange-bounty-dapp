@@ -8,7 +8,6 @@ import web3 from '../../getWeb3';
 import listenWeb3 from '../../listenWeb3';
 import bounty from '../../contractInstance';
 import he from 'he';
-
 import Web3 from 'web3';
 import SEBounty from '../../build/contracts/SEBounty.json';
 import contract from 'truffle-contract';
@@ -16,6 +15,7 @@ import contract from 'truffle-contract';
 class BountySearch2 extends Component {
   constructor() {
     super();
+    this.oraclizeFee = 0.0100355;
     this.state = {
       questionId: '',
       errorMessage: '',
@@ -83,7 +83,7 @@ class BountySearch2 extends Component {
           this.state.bountyDescription,
           this.state.questionId,
           { from: this.state.userAccount,
-            value: web3.utils.toWei(this.state.bountyValue, this.state.bountyUnits),
+            value: Number(web3.utils.toWei(this.state.bountyValue, this.state.bountyUnits)) + Number(web3.utils.toWei(this.oraclizeFee, 'ether')),
           });
 
         // Wait for the __callback() function to be called in the contract.
@@ -97,7 +97,7 @@ class BountySearch2 extends Component {
         // How is this?
         const web3Infura = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/_ws'));
 
-        var bountyEvents = new web3Infura.eth.Contract(SEBounty.abi, '0xf0bf634d51292e9c580c74add0b2828c9da8d680');
+        var bountyEvents = new web3Infura.eth.Contract(SEBounty.abi, '0xa97fbfd9469f93cd5b59e808f95e03c6bf66a3a8');
 
         // contract.allEvents({
         //     fromBlock: 'latest',
@@ -129,12 +129,10 @@ class BountySearch2 extends Component {
         this.setState({ errorMessage: err.message, loaderContent: '' });
       }
     }
-
-
   };
 
   async componentDidMount() {
-    // Get the brower users's account details.
+
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
@@ -164,6 +162,7 @@ class BountySearch2 extends Component {
     return (
       <Layout>
         <Container>
+          <br />
           <Head
             title="Post a Bounty"
             type="new"
@@ -180,7 +179,6 @@ class BountySearch2 extends Component {
             <Grid columns={3}>
               <Grid.Row>
                 <Grid.Column>
-                  Find the question on Stack Exchange
                 </Grid.Column>
                 <Grid.Column>
                 <Form
@@ -218,13 +216,13 @@ class BountySearch2 extends Component {
                   <Message info>
                     <li>Go to Stack Exchange</li>
                     <li>Look at the URL to get the question ID</li>
+                    <li>Enter the ID in the box, and click "Find"</li>
                   </Message>
                 </Grid.Column>
               </Grid.Row>
 
               <Grid.Row>
                 <Grid.Column>
-                  Enter the bounty amount
                 </Grid.Column>
                 <Grid.Column>
                   <Form>
@@ -246,24 +244,19 @@ class BountySearch2 extends Component {
                         />
                     </Form.Field>
                   </Form>
-              {/*    <p>OR</p>
-                  <Dropdown
-                    placeholder='Search for an ERC-20 token here...'
-                    selection
-                    search
-                    options={this.state.tokens}
-                  /> */}
                 </Grid.Column>
                 <Grid.Column>
                   <Message info>
-                    <p>This Dapp uses Oraclize to query Stack Exchange. A small surcharge is added to the value of your bounty to cover the Oraclize fee.</p>
+                    <p>Note: This Dapp uses Oraclize to query Stack Exchange. A small surcharge is added to the value of your bounty to cover the Oraclize fee.</p>
+                  </Message>
+                  <Message error>
+                    <p><strong>Unfortunately the fee for using Oraclize on Rinkeby is currently 0.0100355 ETH.</strong> This will be added to the price of posting your bounty.</p>
                   </Message>
                 </Grid.Column>
               </Grid.Row>
 
               <Grid.Row>
                 <Grid.Column>
-                  Describe any instructions for the bounty hunters
                 </Grid.Column>
                 <Grid.Column>
                   <Form
@@ -285,7 +278,7 @@ class BountySearch2 extends Component {
                 </Grid.Column>
                 <Grid.Column>
                   <Message info>
-                    <p>Try to keep it short! The longer your description, the more it'll cost in network fees.</p>
+                    <p>Describe any specific instructions for bounty hunters, such as what you want the answer to include. Try to keep it short! The longer your description, the more it'll cost in gas fees.</p>
                   </Message>
                 </Grid.Column>
               </Grid.Row>

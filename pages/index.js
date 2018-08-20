@@ -55,9 +55,6 @@ class App extends Component {
               <p style={{ fontSize: '1.2em', lineHeight: 1.6 }}>
                 Place bounties on questions on Stack Exchange, or earn money by answering other people's questions.
               </p>
-              <p style={{ fontSize: '1.2em', lineHeight: 1.6 }}>
-                Bounties can be placed in ETH or any ERC-20 token.
-              </p>
               <Link route="/bounties/new">
                 <a>
                   <Button
