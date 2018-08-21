@@ -76,9 +76,8 @@ npm install -g truffle
 ```
 
 Ganache:
-```
-npm install -g ganache-cli
-```
+
+This should be installed as per the instructions, [here](https://truffleframework.com/docs/ganache/quickstart#ganache).
 
 Ethereum Bridge:
 ```
@@ -88,10 +87,46 @@ npm install
 ```
 Once ```ethereum-bridge``` is installed, it must be run in a separate terminal prior to the tests being run. From the install directory the following should be run, substituting the port to correspond to Ganache's port as necessary:
 ```
-./ethereum-bridge -H localhost:8545 -a 9
+./ethereum-bridge -H localhost:7545 -a 9
 ```
 
 The ```ethereum-bridge``` package is required to allow the testing of Oraclize-dependent code. When the contract calls ```oraclize_query()```, the bridge allows the test framework to connect to Oraclize to perform the query, and supply a route for Oraclize's callback.
+
+An an example of a successful bridge bring-up is shown below:
+```
+$ ./ethereum-bridge -H localhost:7545 -a 9
+Please wait...
+[2018-08-21T19:35:25.711Z] INFO you are running ethereum-bridge - version: 0.6.1
+[2018-08-21T19:35:25.711Z] INFO saving logs to: ./bridge.log
+[2018-08-21T19:35:25.712Z] INFO using active mode
+[2018-08-21T19:35:25.712Z] INFO Connecting to eth node http://localhost:7545
+[2018-08-21T19:35:26.945Z] INFO connected to node type EthereumJS TestRPC/v2.1.5/ethereum-js
+[2018-08-21T19:35:27.215Z] WARN Using 0xda565a9de768e183c2204c3aba7b549e53191ddf to query contracts on your blockchain, make sure it is unlocked and do not use the same address to deploy your contracts
+[2018-08-21T19:35:27.278Z] INFO deploying the oraclize connector contract...
+[2018-08-21T19:35:37.581Z] INFO connector deployed to: 0x6f8fe7bce48972ac12fb495a157fcaf00cbaf200
+[2018-08-21T19:35:37.644Z] INFO deploying the address resolver with a deterministic address...
+[2018-08-21T19:35:58.488Z] INFO address resolver (OAR) deployed to: 0x6f485c8bf6fc43ea212e93bbf8ce046c7f1cb475
+[2018-08-21T19:35:58.488Z] INFO updating connector pricing...
+[2018-08-21T19:36:09.151Z] INFO successfully deployed all contracts
+[2018-08-21T19:36:09.153Z] INFO instance configuration file saved to /home/richard/Projects/consensys-academy-project/ethereum-bridge/config/instance/oracle_instance_20180821T203609.json
+
+Please add this line to your contract constructor:
+
+OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+
+[2018-08-21T19:36:09.157Z] WARN re-org block listen is disabled while using TestRPC
+[2018-08-21T19:36:09.157Z] WARN if you are running a test suit with Truffle and TestRPC or your chain is reset often please use the --dev mode
+[2018-08-21T19:36:09.158Z] INFO Listening @ 0x6f8fe7bce48972ac12fb495a157fcaf00cbaf200 (Oraclize Connector)
+
+(Ctrl+C to exit)
+```
+
+The tests can then be run using:
+```
+truffle test
+```
+
+Note that during the tests there are 3 delays, equating to the times that the tests call Oraclize. These delays are commented in the tests, and should last for 25 seconds each.
 
 ---
 ### Design Pattern Requirements
