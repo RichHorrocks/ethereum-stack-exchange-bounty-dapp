@@ -46,6 +46,7 @@ A public version of the site is hosted on Rinkeby at ...
    
    Any creation or cancellation of bounties or answers are automatically reflected in the front end by way of a page re-rendering.
    
+---
 ### Testing
 
 * **5 tests with explanations for each smart contract written**
@@ -54,14 +55,45 @@ Only 1 contract was written from scratch: ```SEBounty.sol```. Other contracts ar
 
 The tests are defined in ```SEBounty.test.js```.
 
+---
 * **Tests are properly structured**
 
 The tests are Javascript-based (**not** Solidity-based), and are run using the Truffle framework.
 
+---
 * **Tests provide adequate coverage for the contract**
 
+In my opinion, they do. Happy to close any gaps spotted by others.
+
+---
 * **All tests pass**
 
+To run the tests, certain dependencies must be preset.
+
+Truffle:
+```
+npm install -g truffle
+```
+
+Ganache:
+```
+npm install -g ganache-cli
+```
+
+Ethereum Bridge:
+```
+git clone https://github.com/oraclize/ethereum-bridge.git
+cd ethereum-bridge
+npm install
+```
+Once ```ethereum-bridge``` is installed, it must be run in a separate terminal prior to the tests being run. From the install directory the following should be run, substituting the port to correspond to Ganache's port as necessary:
+```
+./ethereum-bridge -H localhost:8545 -a 9
+```
+
+The ```ethereum-bridge``` package is required to allow the testing of Oraclize-dependent code. When the contract calls ```oraclize_query()```, the bridge allows the test framework to connect to Oraclize to perform the query, and supply a route for Oraclize's callback.
+
+---
 ### Design Pattern Requirements
 * **Implement a circuit breaker / emergency stop**
 
