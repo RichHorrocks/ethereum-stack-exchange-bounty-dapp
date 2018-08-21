@@ -11,22 +11,25 @@ import './oraclizeAPI_0.5.sol';
  * @author Richard Horrocks
  * @notice Contract to allow ETH bounties to be placed on existing questions
  *         from the Ethereum Stack Exchange site, and answers submitted.
- * @dev    See <github_link>
+ * @dev    See https://github.com/RichHorrocks/consensys-academy-project.git
+ *         Uses Destructible.sol for lifecycle functionality.
+ *         Uses Pausable.sol for circuit-breaker functionality.
+ *         Uses usingOraclize for Oraclize functionality.
+ *         Uses SafeMath.sol for overflow protection.
  */
 contract SEBounty is Destructible, Pausable, usingOraclize {
     /**
-     * @notice Use the OpenZeppelin SafeMath library for basic uint operations.
+     * SafeMath is used for integer operations to prevent overflow.
      */
     using SafeMath for uint256;
 
-
-    event BountyOpened(uint bountyIndex, address bountyOwner, uint questionId);
-    event BountyAwarded(uint bountyIndex);
-    event BountyClaimed(uint bountyIndex, address answerOwner);
-    event BountyCancelled(uint bountyIndex, address bountyOwner);
-    event AnswerPosted(uint bountyIndex, address answerOwner, uint answerId);
-    event EmergencyWithdrawal(address withdrawalAddress, uint balance);
-
+    /**
+     * Stages
+     *
+     * An enum defining the different stages of a bounty's lifecycle. This
+     * acts as a state machine to allow flow control: transitions can only occur
+     * from one stage to the immediate next.
+     */
     enum Stages {
         Opened,
         Awarded,
@@ -34,6 +37,23 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         Cancelled
     }
 
+    /**
+     * Bounty
+     *
+     * This is the main bounty structure definition.
+     *
+     *  description    - Instructions imposed by the poster of the bounty.
+     *  questionID     - The Stack Exchange question ID of the bounty.
+     *  bountyValue    - The value of the bounty, in wei.
+     *  bountyOwner    - The address of the bounty owner.
+     *  stage          - The current stage of the bounty.
+     *  answers        - An array of IDs of answers that have been posted.
+     *  answerOwners   - A corresponding array of addresses of answer owners.
+     *  acceptedAnswer - The index of the accepted answer.
+     *  timePosted     - The timestamp of when the bounty was posted.
+     *  hasAnswered    - A mapping showing which addresses have already
+     *                   answered.
+     */
     struct Bounty {
         string description;
         uint questionId;
@@ -47,34 +67,154 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         mapping (address => bool) hasAnswered;
     }
 
+    /**
+     * bounties
+     *
+     * An array containing the currently open bounties.
+     */
     Bounty[] public bounties;
+
+    /**
+     * bountyCount
+     *
+     * A mapping to store the number of bounties open for a given address.
+     */
     mapping (address => uint256) public bountyCount;
+
+    /**
+     * awardedTotal
+     *
+     * A mapping to store the total amount, in wei, awarded _by_ a given
+     * address.
+     */
     mapping (address => uint256) public awardedTotal;
+
+    /**
+     * answerCount
+     *
+     * A mapping to store the number of answers posted _by_ a given address.
+     */
     mapping (address => uint256) public answerCount;
+
+    /**
+     * acceptedCount
+     *
+     * A mapping to store the number of bounties won _by_ a given address.
+     */
     mapping (address => uint256) public acceptedCount;
+
+    /**
+     * wonTotal
+     *
+     * A mapping to store the total amount, in wei, won _by_ a given address.
+     */
     mapping (address => uint256) public wonTotal;
 
+    /**
+     * Events
+     */
+
+     /**
+      * BountyAwarded       - Event emitted when bounty is awarded.
+      * BountyClaimed       - Event emitted when bounty is claimed.
+      * BountyCancelled     - Event emitted when bounty is cancelled.
+      * AnswerPosted        - Event emitted when answer is posted.
+      * EmergencyWithdrawal - Event emitted when the contract is paused and all
+      *                       funds are withdrawn.
+      */
+    event BountyAwarded(uint bountyIndex);
+    event BountyClaimed(uint bountyIndex, address answerOwner);
+    event BountyCancelled(uint bountyIndex, address bountyOwner);
+    event AnswerPosted(uint bountyIndex, address answerOwner, uint answerId);
+    event EmergencyWithdrawal(address withdrawalAddress, uint balance);
+
+    /**
+     * Oraclize-related code
+     */
+
+    /**
+     * OracleCallbackDetails
+     *
+     * This is a structure containing details of a new bounty, created in
+     * postBounty, stored as a state variable, and then used in the Oraclize
+     * callback. This, when stored in a mapping, allows the two transactions
+     * associated with posting a bounty to be linked together.
+     *
+     *  desc        - Instructions imposed by the poster of the bounty.
+     *  questionID  - The Stack Exchange question ID of the bounty.
+     *  bountyValue - The value of the bounty, in wei.
+     *  bountyOwner - The address of the bounty owner.
+     */
     struct OracleCallbackDetails {
         string desc;
         uint questionId;
         uint bountyValue;
         address bountyOwner;
-        uint bountyIndex;
-        uint answerId;
     }
 
+    /**
+     * oracleDetails
+     *
+     * A mapping which maps an ID returned by oraclize_query to a struct
+     * containing details of a posted bounty. This allows details of a bounty
+     * to persist while waiting for the Oraclize callback to be called.
+     */
+    mapping(bytes32 => OracleCallbackDetails) oracleDetails;
+
+    /**
+     * newOraclizeQuery
+     *
+     * Event to emit when a new Oraclize query is sent.
+     */
+    event newOraclizeQuery(string description, bytes32 id, address caller);
+
+    /**
+     * OraclizeQueryFail
+     *
+     * Event to emit if there's a failure during the Oraclize callback. For
+     * example, if no data is returned from the query, or if the query was
+     * invalid.
+     */
+    event OraclizeQueryFail(address caller);
+
+    /**
+     * OraclizeQuerySuccess
+     *
+     * Event to emit on callback success. This allows a front end to confirm
+     * that the callback was called successfully, and therefore the overall
+     * posting of a bounty was a success.
+     */
+    event OraclizeQuerySuccess(address caller, uint questionId);
+
+    /**
+     * oraclizeFee
+     *
+     * The current fee to use the Oraclize service, on Rinkeby.
+     */
     uint256 oraclizeFee = 0.0100355 ether;
 
-    mapping(bytes32 => OracleCallbackDetails) oracleDetails;
-    event newOraclizeQuery(string description, bytes32 id, address caller);
-    event OraclizeQueryFail(address caller);
-    event OraclizeQuerySuccess(address caller);
 
+    /**
+     * Modifiers
+     */
+
+    /**
+     * isBountyOwner
+     *
+     * Modifies a function so that it can only be called by the owner of the
+     * contract.
+     */
     modifier isBountyOwner(uint _bountyIndex) {
         require(bounties[_bountyIndex].bountyOwner == msg.sender);
         _;
     }
 
+    /**
+     * isAnswerOwner
+     *
+     * Modifies a function so that it can only be called by the owner of the
+     * answer associated with the _answerIndex parameter.
+     */
     modifier isAnswerOwner(uint _bountyIndex, uint _answerIndex) {
         require(
             bounties[_bountyIndex].answerOwners[_answerIndex] == msg.sender
@@ -82,6 +222,12 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         _;
     }
 
+    /**
+     * isAcceptedAnswerOwner
+     *
+     * Modifies a function so that it can only be called by the owner of the
+     * answer which has been accepted for the given bounty.
+     */
     modifier isAcceptedAnswerOwner(uint _bountyIndex) {
         Bounty storage bountyRef = bounties[_bountyIndex];
         require(
@@ -90,6 +236,13 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         _;
     }
 
+    /**
+     * atStage
+     *
+     * Modifies a function so that it can only be called when the given bounty
+     * is at a given stage. This enforces a state machine, whereby the stages of
+     * bounty follow a logical ordering.
+     */
     modifier atStage(uint _bountyIndex, Stages _stage) {
         require(
             bounties[_bountyIndex].stage == _stage
@@ -151,7 +304,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         bounties.push(newBounty);
         bountyCount[details.bountyOwner]++;
 
-        OraclizeQuerySuccess(details.bountyOwner);
+        OraclizeQuerySuccess(details.bountyOwner, details.questionId);
         delete oracleDetails[_myId];
     }
 
@@ -181,9 +334,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
             _description,
             _questionId,
             msg.value - oraclizeFee,
-            msg.sender,
-            0,
-            0);
+            msg.sender);
 
         newOraclizeQuery("Oraclize query sent", oracleId, msg.sender);
     }
