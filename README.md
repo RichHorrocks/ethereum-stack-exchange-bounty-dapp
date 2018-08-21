@@ -28,7 +28,7 @@
 
 The local site created in the first step can be accessed at ```localhost:3000```.
 
-A public version of the site is hosted at...
+A public version of the site is hosted on Rinkeby at ...
 
 ---
 * **The application should have the following features:**
@@ -59,3 +59,46 @@ The tests are defined in ```SEBounty.test.js```.
 The tests are Javascript-based (**not** Solidity-based), and are run using the Truffle framework.
 
 * **Tests provide adequate coverage for the contract**
+
+* **All tests pass**
+
+### Design Pattern Requirements
+* **Implement a circuit breaker / emergency stop**
+
+* **What other design patterns have you used or not used?**
+
+### Security Tools / Common Attacks
+* **Explain what measures you have taken to ensure that the contracts are no susceptible to common attacks**
+
+### Library / EthPM
+* **At least one of the projec contacts includes an import from a library/contract or an EthPM package**
+
+### Additional Requirements
+* **Smart contract code should be commented according to the specs in the Solidity documentation**
+
+### Stretch Goals
+* **Project uses IPFS**
+
+YES: (Well, kinda.) This project tangentially uses IPFS to host the image on the main splash page. It doesn't use IPFS for its main functionality.
+
+* **Project uses uPort**
+
+NO: This project does **not** use uPort.
+
+* **Project uses the Ethereum Name Service**
+
+NO: This project does **not** use ENS.
+
+* **Project uses an Oracle**
+
+YES: Oraclize is integral to this project's functionality, and is used to query Stack Exchange to check bounties are being posted on valid Stack Exchange questions.
+
+* **Project implements an Upgradeable Pattern Registry or Delegation**
+
+NO: This project does **not** implement any kind of upgradeable pattern.
+
+* **Project includes one of the smart contracts  implemented in LLL / Vyper**
+
+* **Testnet deployment: The addresses provided in deployed_addresses.txt correctly point to deployed contract on Rinkeby**
+
+YES: See deployed_addresses.txt for the address.
