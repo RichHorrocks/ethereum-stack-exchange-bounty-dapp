@@ -30,7 +30,7 @@ Note also that bounties can be added on Stack Exchange questions that have alrea
 Though this dapp is currently scoped to the Ethereum site, it could easily be
 extended to cover any or all Stack Exchange sites.
 
-
+---
 ## Dapp instructions
 
 The dapp has 5 main pages:
@@ -54,14 +54,31 @@ The dapp has 5 main pages:
 
    This page details a particular bounty, including any instructions written by the owner, together with any answers that have been posted in response.
 
+#### Posting a new bounty
 
-Posting a new bounty requires the following steps:
+The general workflow for posting a new bounty is as follows:
+
  * Find the question on Stack Exchange they want to post the bounty on;
  * Get the question's ID number from its URL;
  * Navigate to the Post Bounty page;
  * Add the question's ID number;
  * Add the value of the bounty, noting that the units can be changed in the dropdown;
  * Add any instructions, or particular features they want a good answer to contain.
+
+#### Posting a new answer
+
+The general workflow for posting a new answer is as follows:
+
+ * Either find an existing answer on Stack Exchange which fulfills the bounty, or create a new answer;
+ * On Stack Exchange, underneath the answer is a "Share" link. Clicking this shows a URL, in which is the answer ID;
+ * On the target bounty's details page, enter the answer ID, and the answer will be added to the bounty.
+
+#### Further actions
+
+Once answers have been added to a bounty, the bounty owner awards the bounty to one of the answers.
+
+Once a bounty is awarded, the owner of the winning answer can withdraw the bounty.
+
 
 ---
 ## Design Patterns
@@ -305,6 +322,8 @@ In addition to reentrancy, the following are also mitigated against:
 
 ### Security Tools / Common Attacks
 * **Explain what measures you have taken to ensure that the contracts are no susceptible to common attacks**
+
+  See the above [Security and Common Attack Mitigation](#security-and-common-attack-mitigation) section.
 
 ### Library / EthPM
 * **At least one of the projec contacts includes an import from a library/contract or an EthPM package**
