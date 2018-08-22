@@ -1,10 +1,189 @@
 # consensys-academy-project
 
+This README covers the following topics:
+ * [Dapp Overview](#dapp-overview)
+ * [Dapp Instructions](#dapp-instructions)
+ * [Design Patterns](#design-patterns)
+ * [Security and Common Attack Mitigation](#security-and-common-attack-mitigation)
+ * [Final Project Specification - The Rubric](#final-project-specification)
+ * [Future Improvements](#future-improvements)
+
+---
+## Dapp Overview
+
+This dapp provides a financial overlay to the Stack Exchange question and
+answer site. This can be used to compliment Stack Exchange's own bounty mechanism, but in this case by paying ETH instead of reputation points.
+
+In short, the dapp allows users to:
+ * Post bounties on existing Stack Exchange questions, regardless of who posted
+ the question originally.
+ * Post answers to open bounties, either by:
+   * Creating a new answer on Stack Exchange, and then posting a link to this
+   answer in the dapp; or
+   * Posting a link to someone else's Stack Exchange answer in the dapp.
+
+Note that _any_ Stack Exchange answer can be posted in response to a bounty,
+allowing the answers of unrelated questions to cross-pollinate, something that can't be done on Stack Exchange.
+
+Note also that bounties can be added on Stack Exchange questions that have already been marked as "accepted". This is especially useful for cases where the existing accepted answer is deemed insufficient, but posting the question again would result in it being marked a duplicate.
+
+Though this dapp is currently scoped to the Ethereum site, it could easily be
+extended to cover any or all Stack Exchange sites.
 
 
+## Dapp instructions
+
+The dapp has 5 main pages:
+ * The front page splash
+
+ This is simply a page introducing the site, with a background image served
+ from IPFS.
+ * The Explore Bounties page
+
+ This page lists all currently open bounties, together with inactive entries for bounties that have already been fulfilled.
+
+ * The Post a Bounty page
+
+ From here a user can create a new bounty. The page contains a set of instructions on how to go about this. The dapp uses Oraclize to query Stack Exchange for the validity of any question posted.
+
+ * The Dashboard page
+
+ This is a user's dashboard, where a user is identified by their Metamask account address. The page displays their currently open bounties, and any bounties they've posted an answer to.
+
+ * The Bounty page
+
+ This page details a particular bounty, including any instructions written by the owner, together with any answers that have been posted in response.
+
+
+To post a bounty a user should do the following:
+ * Find the question on Stack Exchange they want to post the bounty on;
+ * Get the question's ID number from its URL;
+ * Navigate to the Post Bounty page;
+ * Add the question's ID number;
+ * Add the value of the bounty, noting that the units can be changed in the dropdown;
+ * Add any instructions, or particular features they want a good answer to contain.
+
+---
+## Design Patterns
+
+#### Factory Pattern (Not implemented)
+
+This was the most important design consideration. Should I deploy a factory contract which would itself deploy child bounty contracts as new bounties were created?
+
+An example of such a contract is below.
+```
+contract StackBountyFactory {
+    address[] public allDeployedBounties;
+    mapping (address => address[]) userDeployedBounties;
+
+    function createBounty(uint _questionId,string _description) public {
+        address newBounty = new StackBounty(_questionId,
+                                            _description,
+                                            msg.sender);
+        allDeployedBounties.push(newBounty);
+        userDeployedBounties[msg.sender].push(newBounty);
+    }
+
+    function getUserDeployedBounties() public view returns (address[]) {
+        return userDeployedBounties[msg.sender];
+    }
+
+    function deployedBounties() public view returns (address[]) {
+        return allDeployedBounties;
+    }
+}
+```
+I tested this idea, but decided that the gas costs involved with deploying a new contract for each bounty would make this pattern economically unattractive, at least at current gas prices.
+
+#### State Machine (Implemented)
+
+The main contract uses a state machine to record the stage each bounty is currently in. Together with the `atStage()` modifier, this allows only certain functions to be called depending on which stage in its lifecycle a bounty is currently in.
+```
+    function withdrawBounty(uint _bountyIndex)
+        public
+        isBountyOwner(_bountyIndex)
+        atStage(_bountyIndex, Stages.Cancelled)
+    {
+        // Use the state machine to protect against reentrancy.
+        bounties[_bountyIndex].stage = Stages.Withdrawn;
+        uint bounty = bounties[_bountyIndex].bountyValue;
+
+        // Don't explicitly delete. Let the compiler clean things up.
+        if (bounties.length > 1) {
+            bounties[_bountyIndex] = bounties[bounties.length - 1];
+        }
+        bounties.length--;
+
+        msg.sender.transfer(bounty);
+
+        emit BountyWithdrawn(_bountyIndex, msg.sender);
+    }
+```
+This helps to prevent re-entrancy attacks: the first action inside the function is to update the state to `Withdrawn`, and the `atStage()` modifier prevents re-entering the function once in this state.
+
+#### Checks-Effects-Interactions Pattern (Implemented)
+
+As shown in the `claimBounty()` function, which uses the Withdraw Pattern.
+```
+    function claimBounty(uint _bountyIndex)
+        public
+        isAcceptedAnswerOwner(_bountyIndex)
+        atStage(_bountyIndex, Stages.Awarded)
+    {
+        bounties[_bountyIndex].stage = Stages.Claimed;
+        uint bounty = bounties[_bountyIndex].bountyValue;
+        bounties[_bountyIndex].bountyValue = 0;
+
+        msg.sender.transfer(bounty);
+
+        emit BountyClaimed(_bountyIndex, msg.sender);
+    }
+```
+Checks:
+ - Is this the person who answered the question?
+ - Are we in the correct stage to allow this interaction to happen?
+
+Effects:
+ - Use a convenience variable to hold the value of the bounty.
+ - Zero out the value in the state data.
+
+Interaction:
+ - Call `transfer()`` to send the value.
+
+---
+## Security and Common Attack Mitigation
+
+Certain of the design features mentioned above aim to mitigate certain attacks.
+
+ * State machine: Helps prevent reentrancy.
+ * Checks-Effects-Interactions: Helps prevent reentrancy.
+
+In addition to reentrancy, the following are also mitigated against:
+
+ * Integer overflow
+
+   SafeMath.sol is used in certain places to prevent overflow, though in reality, more ETH than exists would be required to overflow in these cases.
+
+ * DoS (with revert)
+
+   When a bounty is awarded in `awardBounty()`, the winner must call a further function, `claimBounty()` to withdraw their prize. We are therefore favouring pull payments over push payments, which ensures the receiving address is able to receive (because they initiated the withdrawal).
+
+---
+## Future Improvements
+
+The current implementation could be enhanced in various ways.
+
+#### Small things
+ * Allow open bounties to be edited.
+ * Allow bounties to be posted in ERC-20 tokens. (Note: I did actually implement this, but removed it because there was no easy way to list the tokens available on Rinkeby, nor test in Ganache. This would be fairly easy to do on the mainnet where there exist digests of token addresses.)
+* Extend to dapp to cover any and all Stack Exchange sites, not just the Ethereum site.
+
+#### Big things
+ * Allow bounties to be traded as ERC-721 tokens.
+
+
+---
 ## Final Project Specification - The Rubric
-
-
 ### User Interface Requirements
 
 * **Run app on a dev server locally for testing/grading**
@@ -53,12 +232,12 @@ A public version of the site is hosted on Rinkeby at ...
 
 Only 1 contract was written from scratch: ```SEBounty.sol```. Other contracts are imported, and appropriate tests that incorporate these are included. However, certain functionality in the imported contracts isn't used, so isn't included in any of the tests.
 
-The tests are defined in ```SEBounty.test.js```.
+The tests are defined in ```test/SEBounty.test.js```.
 
 ---
 * **Tests are properly structured**
 
-The tests are Javascript-based (**not** Solidity-based), and are run using the Truffle framework.
+The tests are Javascript-based (**not** Solidity-based), and are run using the Truffle framework. The test file is in Mocha format, so explanations of the tests are included in the `it()` statements.
 
 ---
 * **Tests provide adequate coverage for the contract**
@@ -132,7 +311,11 @@ Note that during the tests there are 3 delays, equating to the times that the te
 ### Design Pattern Requirements
 * **Implement a circuit breaker / emergency stop**
 
+Yes. The main contract imports `Pausable.sol`, and protects all major functions with a `whenNotPaused()` modifier.
+
 * **What other design patterns have you used or not used?**
+
+See the above [Design Patterns](#design-patterns) section.
 
 ### Security Tools / Common Attacks
 * **Explain what measures you have taken to ensure that the contracts are no susceptible to common attacks**
@@ -140,8 +323,18 @@ Note that during the tests there are 3 delays, equating to the times that the te
 ### Library / EthPM
 * **At least one of the projec contacts includes an import from a library/contract or an EthPM package**
 
+The main contract imports the following contracts:
+ * Ownable.sol
+ * Pausable.sol
+ * Destructible.sol
+
+And the following library:
+ * SafeMath.sol
+
 ### Additional Requirements
 * **Smart contract code should be commented according to the specs in the Solidity documentation**
+
+Yes. Note that I haven't used NatSpec-style (Doxygen) comments on code that isn't a function definition, as this isn't supported (see Solidity issue [#3418](https://github.com/ethereum/solidity/issues/3418)). Where NatSpec isn't supported I've used bog-standard comment format.
 
 ### Stretch Goals
 * **Project uses IPFS**
@@ -166,6 +359,14 @@ NO: This project does **not** implement any kind of upgradeable pattern.
 
 * **Project includes one of the smart contracts  implemented in LLL / Vyper**
 
+I've reimplemented the SafeMath library in Vyper, though with no serious rigour.
+
+The code can be found in `vyper/SafeMath.vy`.
+
+I wasn't able to get Vyper and Solidity contracts to co-compile in a single `truffle compile` (even with some digging), so for now I've directly copied the bytecode which was output by the https://vyper.online/ tool. This can be found at the bottom of the `.vy` file.
+
+Note that for the sake of being able to run the Truffle tests, the Vyper bytecode currently isn't hooked up to the project.
+
 * **Testnet deployment: The addresses provided in deployed_addresses.txt correctly point to deployed contract on Rinkeby**
 
-YES: See deployed_addresses.txt for the address.
+YES: See [`deployed_addresses.txt`](deployed_addresses.txt) for the address.

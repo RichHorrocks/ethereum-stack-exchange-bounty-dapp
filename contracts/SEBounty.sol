@@ -278,10 +278,13 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         public
         whenNotPaused()
     {
+        // This transaction can only be initiated by Oraclize.
         require(msg.sender == oraclize_cbAddress());
 
+        // Get the details we stored in postBounty().
         OracleCallbackDetails storage details = oracleDetails[_myId];
 
+        // Check the query result is valid.
         if (bytes(_result).length == 0 ||
             parseInt(_result) != details.questionId) {
             OraclizeQueryFail(details.bountyOwner);
@@ -289,6 +292,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
             revert();
         }
 
+        // Actually create the bounty and push to state.
         Bounty memory newBounty = Bounty({
             description: details.desc,
             questionId: details.questionId,
@@ -321,15 +325,19 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         payable
         whenNotPaused()
     {
+        // Check the msg.value is enough to pay for Oraclize.
         require(msg.value > oraclizeFee);
 
+        // Create the Oraclize query string.
         string memory queryString = strConcat(
             "json(https://api.stackexchange.com/2.2/questions/",
             uIntToStr(_questionId),
             "?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ(().items[0].question_id");
 
+        // Query Oraclize.
         bytes32 oracleId = oraclize_query("URL", queryString, 500000);
 
+        // Save the details for use in the Oraclize callback.
         oracleDetails[oracleId] = OracleCallbackDetails(
             _description,
             _questionId,
@@ -354,6 +362,7 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         atStage(_bountyIndex, Stages.Opened)
         whenNotPaused()
     {
+        // Use the state machine to protect against reentrancy.
         bounties[_bountyIndex].stage = Stages.Awarded;
         bounties[_bountyIndex].acceptedAnswer = _answerIndex;
 
@@ -381,6 +390,8 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
     {
         // Use the state machine to protect against reentrancy.
         bounties[_bountyIndex].stage = Stages.Claimed;
+
+        // Use the Checks-Effects-Interactions pattern for safety.
         uint bounty = bounties[_bountyIndex].bountyValue;
         bounties[_bountyIndex].bountyValue = 0;
         msg.sender.transfer(bounty);
@@ -403,7 +414,13 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         bounties[_bountyIndex].stage = Stages.Cancelled;
         uint bounty = bounties[_bountyIndex].bountyValue;
 
-        // Don't explicitly delete. Let the compiler clean things up.
+        /*
+         * To delete the entry from the array, copy the last entry in the array
+         * over the entry to delete, then reduce the size of the array by one.
+         * It's not important to maintain order. The compiler will
+         * automatically reduce the size of the array, meaning we don't need to
+         * call delete(). This saves gas costs.
+         */
         if (bounties.length > 1) {
             bounties[_bountyIndex] = bounties[bounties.length - 1];
         }
@@ -461,6 +478,13 @@ contract SEBounty is Destructible, Pausable, usingOraclize {
         Bounty storage bountyRef = bounties[_bountyIndex];
         uint len = bountyRef.answers.length;
 
+        /*
+         * To delete the entry from the array, copy the last entry in the array
+         * over the entry to delete, then reduce the size of the array by one.
+         * It's not important to maintain order. The compiler will
+         * automatically reduce the size of the array, meaning we don't need to
+         * call delete(). This saves gas costs.
+         */
         if (len > 1) {
             bountyRef.answers[_answerIndex] = bountyRef.answers[len - 1];
             bountyRef.answerOwners[_answerIndex] =
