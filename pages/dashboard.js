@@ -38,30 +38,33 @@ class Dashboard extends Component {
   }
 
   async componentDidMount() {
-    // Get the brower users's account details.
+    // Get the active user account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
 
+    // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
 
-    // Get all bounties from the contract.
+    // Get the number of bounties from the contract.
     let bountyCount = await bounty.getBountyCount.call();
     bountyCount = bountyCount.toNumber();
 
-    // Get all the bounties from the contract.
+    // Get all the bounties from the contract in the form of an array.
     const bounties = await Promise.all(
       Array(bountyCount).fill().map((element, index) => {
         return bounty.bounties.call(index);
       })
     );
 
-    // Iterate through the bounties:
-    //  - keep those belonging to this user
-    //  - get the list of answer owners
-    //    - if there are any belonging to this user, get the associated
-    //      question ID
+    /*
+     * Iterate through the bounties:
+     *  - keep those belonging to this user
+     *  - get the list of answer owners
+     *  - if there are any belonging to this user, get the associated
+     *    question ID
+     */
     let userBounties = [];
     let userAnswers = [];
     let answerBounties = [];
@@ -78,7 +81,8 @@ class Dashboard extends Component {
           userAnswers.push(JSON.parse(JSON.stringify(answers[j])));
           answerBounties.push(JSON.parse(JSON.stringify(bounties[i])));
 
-          answerBounties[answerBounties.length - 1].push(JSON.parse(JSON.stringify(answers[bounties[i][5]])));
+          answerBounties[answerBounties.length - 1].push(JSON.parse(
+            JSON.stringify(answers[bounties[i][5]])));
         }
       }
     }
@@ -95,8 +99,12 @@ class Dashboard extends Component {
       // Get the questions from Stack Exchange in a single request.
       const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
-      // It's possible multiple bounties are open for the same question ID, and // owned by the same user.
-      // Iterate through all the bounties... Is there a better way than this?
+      /*
+       * Get the question title and the URL from each returned question.
+       * Push them onto each of their respective bounties in the array. It's
+       * possible multiple bounties are open for the same question ID, so
+       * iterate through the array and check.
+       */
       data.data.items.map((item, index) => {
         for (var i = 0; i < userBounties.length; i++) {
           if (userBounties[i][1] == item.question_id) {
@@ -108,26 +116,30 @@ class Dashboard extends Component {
     }
 
     if (answerBounties.length > 0) {
-      // Get all the question IDs from the bounties.
+console.log(answerBounties.length);
+console.log(answerBounties);
+      // Get all the answer IDs from the bounties.
       const ids = Array(answerBounties.length).fill().map((element, index) => {
         return answerBounties[index][1];
       });
 
-      // Catenate the question IDs.
+      // Catenate the answer IDs.
       const idString = ids.join(';');
 
-      // Get the questions from Stack Exchange in a single request.
+      // Get the answers from Stack Exchange in a single request.
       const data = await axios.get(`https://api.stackexchange.com/2.2/questions/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
-      // Get the question title and the link from the returned question.
-      // Push them onto each of their respective bounties in the array.
+      /*
+       * Get the question title and the link from the returned question.
+       * Push them onto each of their respective bounties in the array.
+       */
       data.data.items.map((item, index) => {
         answerBounties[index].push(item.link);
         answerBounties[index].push(item.title);
       });
     }
 
-    // Get overall totals.
+    // Get the overall totals from the contract.
     const userBountyCount = await bounty.bountyCount.call(accounts[0]);
     const userAwardedTotal = await bounty.awardedTotal.call(accounts[0]);
     const userAnswerCount = await bounty.answerCount.call(accounts[0]);

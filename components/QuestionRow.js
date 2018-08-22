@@ -13,42 +13,52 @@ class QuestionRow extends Component {
   onCancel = async () => {
     this.setState({ isLoading: true });
     const accounts = await web3.eth.getAccounts();
-    await bounty.cancelBounty(this.props.id, { from: accounts[0] });
+    await bounty.cancelBounty(
+      this.props.id,
+      {
+        from: accounts[0],
+        gas: 200000,
+      });
     this.setState({ isLoading: false });
   };
 
   render() {
     const { Row, Cell } = Table;
     const { id, bounty, userAccount } = this.props;
-    const renderCancel = (userAccount.toUpperCase() === bounty[3].toUpperCase());
     const address = bounty[3];
     const linkString = he.decode(bounty[8]);
+    const disableRow = (bounty[4] == 2);
+    const renderCancel = !disableRow &&
+      (userAccount.toUpperCase() === bounty[3].toUpperCase());
 
     return (
-      <Row>
+      <Row
+        disabled={disableRow}>
         <Cell>{bounty[1]}</Cell>
         <Cell><a target="_blank" href={bounty[7]}>{linkString}</a></Cell>
         <Cell>{address.toUpperCase()}</Cell>
         <Cell>{web3.utils.fromWei(bounty[2], 'ether')}</Cell>
         <Cell>
-          <Link route={`/bounties/${address}/${id}`}>
-            <a>
+            <Link route={`/bounties/${address}/${id}`}>
+              <a>
+                {disableRow ? null :
+                  <Button
+                    content="Details"
+                    color="teal"
+                    basic
+                  />
+                }
+              </a>
+            </Link>
+            {renderCancel ? (
               <Button
-                content="Details"
-                color="teal"
+                content="Cancel"
+                color="red"
                 basic
+                onClick={this.onCancel}
+                loading={this.state.isLoading}
               />
-            </a>
-          </Link>
-          {renderCancel ? (
-            <Button
-              content="Cancel"
-              color="red"
-              basic
-              onClick={this.onCancel}
-              loading={this.state.isLoading}
-            />
-          ) : null }
+            ) : null }
         </Cell>
       </Row>
     );

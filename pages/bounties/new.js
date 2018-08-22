@@ -1,5 +1,17 @@
 import React, { Component } from 'react';
-import { Form, Input, TextArea, Dropdown, Button,  Message, Container, Card, Segment, Grid, Header, Dimmer, Loader } from 'semantic-ui-react';
+import {
+  Form,
+  Input,
+  TextArea,
+  Dropdown,
+  Button,
+  Message,
+  Container,
+  Card,
+  Grid,
+  Dimmer,
+  Loader
+} from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import Head from '../../components/Head';
 import { Link, Router } from '../../routes';
@@ -15,7 +27,7 @@ import contract from 'truffle-contract';
 class BountySearch2 extends Component {
   constructor() {
     super();
-    this.oraclizeFee = 0.0100355;
+    this.oraclizeFee = "0.0100355";
     this.state = {
       questionId: '',
       errorMessage: '',
@@ -33,6 +45,7 @@ class BountySearch2 extends Component {
     };
   }
 
+  // Handle the click event when the user inputs a question ID.
   onFind = async (e) => {
     e.preventDefault();
     this.setState({
@@ -61,6 +74,7 @@ class BountySearch2 extends Component {
     this.setState({ isLoading: false });
   };
 
+  // Handle the click event when a user posts a new bounty.
   onPost = async () => {
     this.setState({
       isLoading: true,
@@ -68,87 +82,105 @@ class BountySearch2 extends Component {
     });
 
     if (this.state.questionId == '') {
-      this.setState({ errorMessage: 'Please enter a question ID' });
+      this.setState({
+        errorMessage: 'Please enter a question ID',
+        isLoading: false,
+      });
     } else if (this.state.bountyValue == 0) {
-      this.setState({ errorMessage: 'Please enter a value for your bounty' });
+      this.setState({
+        errorMessage: 'Please enter a value for your bounty',
+        isLoading: false,
+      });
     } else {
       try {
-        // Define an event we'll be watching for later on.
-        //var bountyOpenedEvent = bounty.events.BountyOpened();
         this.setState({ loaderContent: 'Preparing bounty...' });
 
-        // Call into the contract to create the bounty.
-        // This runs oraclize_query() to check that our question ID is valid.
+        /*
+         * Call into the contract to create the bounty.
+         * This runs oraclize_query() to check that our question ID is valid.
+         */
+        const totalValue =
+          Number(web3.utils.toWei(this.state.bountyValue,
+                                  this.state.bountyUnits)) +
+          Number(web3.utils.toWei(this.oraclizeFee, 'ether'));
+
         await bounty.postBounty(
           this.state.bountyDescription,
           this.state.questionId,
           { from: this.state.userAccount,
-            value: Number(web3.utils.toWei(this.state.bountyValue, this.state.bountyUnits)) + Number(web3.utils.toWei(this.oraclizeFee, 'ether')),
+            value: totalValue,
           });
 
-        // Wait for the __callback() function to be called in the contract.
-        // This emits a log that we can check for. (BountyOpened)
+        /*
+         * Wait for the __callback() function to be called in the contract.
+         * This emits a log that we can check for. (BountyOpened).
+         */
         this.setState({
           loaderContent:
-          'Checking with Stack Exchange. This might take a minute...',
+          'Checking with Stack Exchange. This could take up to 30 seconds...',
         });
 
-        // Metamask doesn't support events in web3@1.0.0... :-|
-        // How is this?
-        const web3Infura = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/_ws'));
+        /*
+         * This project is using web3@1.0.0.
+         * Metamask doesn't support events in web3@1.0.0, so we need to use
+         * a provider that does. Connect to Infura's websocket and listen for
+         * events there.
+         */
+        if (this.state.networkId === 4) {
+          const web3Infura = new Web3(
+            new Web3.providers.WebsocketProvider(
+            'wss://rinkeby.infura.io/_ws'));
 
-        var bountyEvents = new web3Infura.eth.Contract(SEBounty.abi, '0xa97fbfd9469f93cd5b59e808f95e03c6bf66a3a8');
+          var bountyEvents = new web3Infura.eth.Contract(
+            SEBounty.abi,
+            '0x2b451aabc6bebd06f394987fc011ac502a393f70');
 
-        // contract.allEvents({
-        //     fromBlock: 'latest',
-        // }, function (error, event) {
-        //     if (error)
-        //         alert("error while subscribing to event")
-        //     console.log(event)
-        //     }
-        // })
-        //https://ethereum.stackexchange.com/questions/42800/react-incorporating-event-listening-into-web3js-promise
-
-        bountyEvents.events.OraclizeQuerySuccess({}, (err, result) => {
-          if (!err) {
-            console.log("LOGGED -- " + result);
-            Router.pushRoute('/bounties/explore');
-          } else {
-            this.setState({ errorMessage: err.message, isLoading: false });
-          }
-        });
-
-        bountyEvents.events.OraclizeQueryFail({}, (err, result) => {
-          this.setState({
-            errorMessage: "Unable to confirm request with Stack Exchange", isLoading: false
+          bountyEvents.events.OraclizeQuerySuccess({
+            fromBlock: 'latest',
+          }, (err, result) => {
+            if (!err) {
+              console.log("LOGGED -- " + result);
+              Router.pushRoute('/bounties/explore');
+            } else {
+              this.setState({ errorMessage: err.message, isLoading: false });
+            }
           });
-        });
 
-
+          bountyEvents.events.OraclizeQueryFail({
+            fromBlock: 'latest',
+          }, (err, result) => {
+            this.setState({
+              errorMessage: "Unable to confirm request with Stack Exchange",
+              isLoading: false
+            });
+          });
+        } else {
+          /*
+           * Assume that if we're not running on Rinkeby, we're on Ganache.
+           * Wait 25 seconds for the Oraclize bridge to send the callback.
+           */
+          await new Promise(r => setTimeout(() => r(), 30000));
+          Router.pushRoute('/bounties/explore');
+        }
       } catch (err) {
-        this.setState({ errorMessage: err.message, loaderContent: '' });
+        this.setState({
+          errorMessage: err.message,
+          loaderContent: '',
+          isLoading: false,
+        });
       }
     }
   };
 
   async componentDidMount() {
-
+    // Get the user's active account.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
 
+    // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
-
-    axios
-    .get('https://raw.githubusercontent.com/kvhnuke/etherwallet/mercury/app/scripts/tokens/ethTokens.json')
-    .then(({ data }) => {
-      const newData = data.map(({ address, symbol, decimal, type }) => ({ value: address, text: symbol }));
-      this.setState({ tokens: newData });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
   }
 
   render() {
@@ -247,10 +279,20 @@ class BountySearch2 extends Component {
                 </Grid.Column>
                 <Grid.Column>
                   <Message info>
-                    <p>Note: This Dapp uses Oraclize to query Stack Exchange. A small surcharge is added to the value of your bounty to cover the Oraclize fee.</p>
+                    <p>
+                      Note: This Dapp uses Oraclize to query Stack Exchange.
+                      A small surcharge is added to the value of your bounty
+                      to cover the Oraclize fee.
+                    </p>
                   </Message>
                   <Message error>
-                    <p><strong>Unfortunately the fee for using Oraclize on Rinkeby is currently 0.0100355 ETH.</strong> This will be added to the price of posting your bounty.</p>
+                    <p>
+                      <strong>
+                        Unfortunately the fee for using Oraclize on
+                        Rinkeby is currently 0.0100355 ETH.
+                      </strong>
+                      This will be added to the price of posting your bounty.
+                    </p>
                   </Message>
                 </Grid.Column>
               </Grid.Row>

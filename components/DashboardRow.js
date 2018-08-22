@@ -11,6 +11,7 @@ class DashboardRow extends Component {
   render() {
     const { Row, Cell } = Table;
     const { answer, bounty, userAccount } = this.props;
+console.log(bounty);
     const linkString = he.decode(bounty[8]);
     const renderCancel = (bounty[4] == 0);
     const renderClaim = ((bounty[4] == 1) && (answer == (bounty[6]).toNumber()));
@@ -18,7 +19,9 @@ class DashboardRow extends Component {
     return (
       <Row>
         <Cell>
-          <a target="_blank" href={`https://ethereum.stackexchange.com/a/${answer}/52`}>
+          <a
+            target="_blank"
+            href={`https://ethereum.stackexchange.com/a/${answer}/52`}>
             {answer}
           </a>
         </Cell>

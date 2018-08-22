@@ -24,10 +24,12 @@ class App extends Component {
   }
 
   async componentDidMount() {
+    // Get the active user account.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
 
+    // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
   }

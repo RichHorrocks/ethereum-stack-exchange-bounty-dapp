@@ -26,6 +26,7 @@ import he from 'he';
 class BountyShow extends Component {
   state = {
       isLoading: true,
+      errorMessage: '',
       userAccount: '',
       networkId: null,
       showBounty: {},
@@ -39,8 +40,6 @@ class BountyShow extends Component {
       answerNames: [],
     };
 
-  // Ugh. It was all going so well...
-  // truffle-contract doesn't play well with Next.js
   static async getInitialProps(props) {
     return {
       bountyId: props.query.id,
@@ -48,7 +47,7 @@ class BountyShow extends Component {
   }
 
   async getQuestionData() {
-    // Get the bounty and set the stage.
+    // Get the bounty data and set it into state.
     const showBounty = await bounty.bounties.call(this.props.bountyId);
     this.setState({ showBounty });
 
@@ -57,8 +56,10 @@ class BountyShow extends Component {
 
     //this.setState({ bountyLink: data.data.items[0]})
 
-    // Get the question title and the link from the returned question.
-    // Push them onto each of their respective bounties in the array.
+    /*
+     * Get the question title and the link from the returned question.
+     * Push them onto each of their respective bounties in the array.
+     */
     this.setState({
       bountyTitle: he.decode(data.data.items[0].title),
       bountyLink: data.data.items[0].link,
@@ -66,13 +67,13 @@ class BountyShow extends Component {
   }
 
   async getAnswerData () {
-    // Get the array of answers.
+    // Get the array of answers for this bounty.
     const answers = await bounty.getAnswers.call(this.props.bountyId);
 
-    // Get the array of owners.
+    // Get the array of answer owners.
     const answerOwners = await bounty.getAnswerOwners.call(this.props.bountyId);
 
-    // Declare an array for the SE names.
+    // Declare an array for the names of Stack Exchange users.
     let answerNames = [];
 
     // Get the answers from Stack Exchange.
@@ -87,18 +88,14 @@ class BountyShow extends Component {
 
       // Get the answers from Stack Exchange in a single request.
       const data = await axios.get(`https://api.stackexchange.com/2.2/answers/${idString}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
-console.log(data.data.items[0].owner.user_id);
 
-      const data2 = await axios.get(`https://api.stackexchange.com/2.2/users/${data.data.items[0].owner.user_id}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
+    //  const data2 = await axios.get(`https://api.stackexchange.com/2.2/users/${data.data.items[0].owner.user_id}?site=ethereum&key=fMcgqnTvxidY8Sk8n1BcbQ((`);
 
-console.log(data2);
-      // Get the question title and the link from the returned question.
-      // Push them onto each of their respective bounties in the array.
+      // Get the Stack Exchange display name for each answer.
       data.data.items.map((item, index) => {
         answerNames.push(item.owner.display_name);
       });
 
-      // Eh? Think this shouldn't be returning this...
       this.setState({ acceptedId: answers[this.state.showBounty[5]] });
     }
 
@@ -112,23 +109,26 @@ console.log(data2);
   }
 
   async componentDidMount() {
-
-    // Get the brower users's account details.
+    // Get the browser users's account details.
     const accounts = await web3.eth.getAccounts();
     this.setState({ userAccount: accounts[0] });
     listenWeb3(accounts[0]);
 
+    // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
 
+    // Get the question and answer data.
     await this.getQuestionData();
     await this.getAnswerData();
   }
 
+  // Get the bounty's creation timestamp in a user-readable form.
   getTime() {
     return moment(this.state.showBounty[6], "X").fromNow();
   }
 
+  // Render each row in the table of answers.
   renderRow() {
     return this.state.answers.map((answer, index) => {
       return <AnswerRow
@@ -146,16 +146,27 @@ console.log(data2);
     });
   }
 
+  // Handle the click event when a user posts an answer.
   onSubmit = async (e) => {
     e.preventDefault();
-    this.setState({ isLoading: true });
+    this.setState({
+      isLoading: true,
+      errorMessage: '',
+    });
 
-    await bounty.postAnswer(
-      this.props.bountyId,
-      this.state.newAnswerId,
-      { from: this.state.userAccount });
+    // Call the contract to post the answer.
+    try  {
+      await bounty.postAnswer(
+        this.props.bountyId,
+        this.state.newAnswerId,
+        { from: this.state.userAccount });
 
-    await this.getAnswerData();
+      // Re-render the page with the new answer data.
+      await this.getAnswerData();
+    } catch (err) {
+      this.setState({
+        errorMessage: "Are you sure the ID you've used is a valid?" });
+    }
 
     this.setState({ isLoading: false, newAnswerId: '' });
   };
@@ -196,7 +207,9 @@ console.log(data2);
             content="Post a new answer"
             as="h3"
           />
-          <Form onSubmit={this.onSubmit}>
+          <Form
+            onSubmit={this.onSubmit}
+            error={!!this.state.errorMessage}>
             <Form.Group>
               <Form.Input
                 placeholder='Answer ID'
@@ -209,12 +222,20 @@ console.log(data2);
                 color='green'
                 loading={this.state.isLoading} />
             </Form.Group>
+            <Message
+              error
+              header="Oops!"
+              content={this.state.errorMessage}
+            />
           </Form>
           <Message info>
-            <Message.Header>Remember</Message.Header>
-            <p>
-              You can only post one answer per bounty. If you want to add a different answer, you must cancel the other one first.
-            </p>
+            <li>Go to Stack Exchange</li>
+            <li>Either find a suitable answer, or post a new one yourself</li>
+            <li>Click the "Share" button below the answer to find the
+                answer ID.</li>
+            <li>For example, if the URL is
+                "https://ethereum.stackexchange.com/a/<strong>1001</strong>/52"
+                then the ID is 1001.</li>
           </Message>
           <Dimmer.Dimmable active>
             <Dimmer active={this.state.isLoading} inverted>

@@ -9,7 +9,13 @@ class AnswerRow extends Component {
 
   onCancel = async () => {
     this.setState({ isLoading: true });
-    await bounty.cancelAnswer(0, this.props.id, { from: this.props.userAccount });
+    await bounty.cancelAnswer(
+      this.props.bountyId,
+      this.props.answerIndex,
+      {
+        from: this.props.userAccount,
+        gas: 70000,
+      });
     this.setState({ isLoading: false });
   };
 
@@ -26,7 +32,10 @@ class AnswerRow extends Component {
     this.setState({ isLoading: true });
     await bounty.claimBounty(
       this.props.bountyId,
-      { from: this.props.userAccount });
+      {
+        from: this.props.userAccount,
+        gas: 70000,
+      });
     this.setState({ isLoading: false });
   };
 
@@ -43,11 +52,15 @@ class AnswerRow extends Component {
     } = this.props;
     const displayId = answerId.toNumber();
 
-    const renderCheck = (bountyStage == 1) && (answerId.toNumber() == acceptedId.toNumber());
-    const renderAccept =
-      (bountyStage == 0) && (bountyOwner.toUpperCase() == userAccount.toUpperCase());
-    const renderCancel = (bountyStage == 0) && (userAccount.toUpperCase() === answerOwner.toUpperCase());
-    const renderClaim = renderCheck && (userAccount.toUpperCase() === answerOwner.toUpperCase());
+    const renderCheck =
+      (bountyStage == 1 || bountyStage == 2) &&
+      (answerId.toNumber() == acceptedId.toNumber());
+    const renderAccept = (bountyStage == 0) &&
+      (bountyOwner.toUpperCase() == userAccount.toUpperCase());
+    const renderCancel = (bountyStage == 0) &&
+      (userAccount.toUpperCase() === answerOwner.toUpperCase());
+    const renderClaim = renderCheck && (bountyStage == 1) &&
+      (userAccount.toUpperCase() === answerOwner.toUpperCase());
     const disableRow = (bountyStage == 1) && !renderCheck;
 
     return (
@@ -55,7 +68,9 @@ class AnswerRow extends Component {
         positive
         disabled={disableRow}>
         <Cell>
-          <a target="_blank" href={`https://ethereum.stackexchange.com/a/${displayId}/52`}>
+          <a
+            target="_blank"
+            href={`https://ethereum.stackexchange.com/a/${displayId}/52`}>
             {displayId}
           </a>
         </Cell>
