@@ -14,19 +14,25 @@ export default (props) => {
         <Step active={props.stage == 1}>
           <Step.Content>
             <Step.Title>Awarded</Step.Title>
-            <Step.Description>The owner has selected a winning  answer</Step.Description>
+            <Step.Description>
+              The owner has selected a winning  answer
+            </Step.Description>
           </Step.Content>
         </Step>
         <Step active={props.stage == 2}>
           <Step.Content>
             <Step.Title>Claimed</Step.Title>
-            <Step.Description>The winner has withdrawn the bounty</Step.Description>
+            <Step.Description>
+              The winner has withdrawn the bounty
+            </Step.Description>
           </Step.Content>
         </Step>
         <Step disabled active={props.stage == 3}>
           <Step.Content>
             <Step.Title>Cancelled</Step.Title>
-            <Step.Description>The owner has cancelled the bounty</Step.Description>
+            <Step.Description>
+              The owner has cancelled the bounty
+            </Step.Description>
           </Step.Content>
         </Step>
       </Step.Group>

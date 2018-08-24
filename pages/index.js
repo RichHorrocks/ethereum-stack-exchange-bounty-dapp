@@ -32,6 +32,8 @@ class App extends Component {
     // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
+
+    //style={{ height: '100vh', backgroundImage: `url('https://gateway.ipfs.io/ipfs/QmNZnBRq6cXauYLYhTeJSRioJCdo3NpbmhnRcWXhLwNEzW')` }}
   }
 
   render() {
@@ -41,7 +43,7 @@ class App extends Component {
           vertical
           inverted
           textAlign='center'
-          style={{ height: '100vh', backgroundImage: `url('https://gateway.ipfs.io/ipfs/QmNZnBRq6cXauYLYhTeJSRioJCdo3NpbmhnRcWXhLwNEzW')` }}>
+          style={{ height: '100vh'}}>
           <Grid
             textAlign='center'
             style={{ height: '100%' }}

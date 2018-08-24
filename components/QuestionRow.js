@@ -28,7 +28,7 @@ class QuestionRow extends Component {
     const address = bounty[3];
     const linkString = he.decode(bounty[8]);
     const disableRow = (bounty[4] == 2);
-    const renderCancel = !disableRow &&
+    const renderCancel = !disableRow && (bounty[4] == 0) &&
       (userAccount.toUpperCase() === bounty[3].toUpperCase());
 
     return (

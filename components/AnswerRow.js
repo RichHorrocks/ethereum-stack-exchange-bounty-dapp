@@ -17,6 +17,7 @@ class AnswerRow extends Component {
         gas: 70000,
       });
     this.setState({ isLoading: false });
+    this.props.handler();
   };
 
   onAward = async () => {
@@ -26,6 +27,7 @@ class AnswerRow extends Component {
       this.props.answerIndex,
       { from: this.props.userAccount });
     this.setState({ isLoading: false });
+    this.props.handler();
   };
 
   onClaim = async () => {
@@ -37,6 +39,7 @@ class AnswerRow extends Component {
         gas: 70000,
       });
     this.setState({ isLoading: false });
+    this.props.handler();
   };
 
   render() {
@@ -51,7 +54,6 @@ class AnswerRow extends Component {
       bountyOwner,
     } = this.props;
     const displayId = answerId.toNumber();
-
     const renderCheck =
       (bountyStage == 1 || bountyStage == 2) &&
       (answerId.toNumber() == acceptedId.toNumber());

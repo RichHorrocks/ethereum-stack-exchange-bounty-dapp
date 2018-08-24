@@ -81,8 +81,18 @@ class Dashboard extends Component {
           userAnswers.push(JSON.parse(JSON.stringify(answers[j])));
           answerBounties.push(JSON.parse(JSON.stringify(bounties[i])));
 
+          /*
+           * Add the accepted answer onto the end of the bounty we just pushed
+           * to answerBounties array.
+           */
           answerBounties[answerBounties.length - 1].push(JSON.parse(
             JSON.stringify(answers[bounties[i][5]])));
+
+          /*
+           * Push the bounty ID into the answer so we can work out the proper
+           * URL later on.
+           */
+           answerBounties[answerBounties.length - 1].push(i);
         }
       }
     }
@@ -116,8 +126,6 @@ class Dashboard extends Component {
     }
 
     if (answerBounties.length > 0) {
-console.log(answerBounties.length);
-console.log(answerBounties);
       // Get all the answer IDs from the bounties.
       const ids = Array(answerBounties.length).fill().map((element, index) => {
         return answerBounties[index][1];
@@ -141,10 +149,12 @@ console.log(answerBounties);
 
     // Get the overall totals from the contract.
     const userBountyCount = await bounty.bountyCount.call(accounts[0]);
-    const userAwardedTotal = await bounty.awardedTotal.call(accounts[0]);
+    let userAwardedTotal = await bounty.awardedTotal.call(accounts[0]);
+    userAwardedTotal = web3.utils.fromWei(userAwardedTotal.toString(), 'ether');
     const userAnswerCount = await bounty.answerCount.call(accounts[0]);
     const userAcceptedCount = await bounty.acceptedCount.call(accounts[0]);
-    const userWonTotal = await bounty.wonTotal.call(accounts[0]);
+    let userWonTotal = await bounty.wonTotal.call(accounts[0]);
+    userWonTotal = web3.utils.fromWei(userWonTotal.toString(), 'ether');
 
     this.setState({
       userBounties,
@@ -201,7 +211,8 @@ console.log(answerBounties);
               <Loader inverted></Loader>
             </Dimmer>
             <Header
-              content={`You have posted ${this.state.userBountyCount} bounties and awarded ${this.state.userAwardedTotal} ETH.`}
+              content={`You have posted ${this.state.userBountyCount}
+              bounties and awarded ${this.state.userAwardedTotal} ETH.`}
               as="h4"
             />
             <Table>
@@ -210,7 +221,7 @@ console.log(answerBounties);
                   <HeaderCell>SE ID</HeaderCell>
                   <HeaderCell>Question Title and Link</HeaderCell>
                   <HeaderCell>Owner Address</HeaderCell>
-                  <HeaderCell>Bounty Value</HeaderCell>
+                  <HeaderCell>Bounty Value / ETH</HeaderCell>
                   <HeaderCell>Actions</HeaderCell>
                 </Row>
               </Header>
@@ -227,7 +238,9 @@ console.log(answerBounties);
               <Loader inverted></Loader>
             </Dimmer>
             <Header
-              content={`You have won ${this.state.userWonTotal} ETH from a total of ${this.state.userAnswerCount} answers. (${this.state.userAcceptedCount} accepted.)`}
+              content={`You have won ${this.state.userWonTotal}
+              ETH from a total of ${this.state.userAnswerCount} answers.
+              (${this.state.userAcceptedCount} accepted.)`}
               as="h4"
             />
             <Table>

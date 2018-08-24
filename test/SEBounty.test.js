@@ -1,7 +1,11 @@
 const SEBounty = artifacts.require('./SEBounty');
 const assert = require("chai").assert;
 const truffleAssert = require('truffle-assertions');
-const web3 = require('web3');
+
+/*
+ * Note well: The Truffle test suite injects web3@0.x.x, so using methods from
+ * the web3@1.0.0 version of the API won't work...
+ */
 
 contract('SEBounty', (accounts) => {
   let bounty;
@@ -12,7 +16,7 @@ contract('SEBounty', (accounts) => {
   const answerAccount2 = accounts[3];
 
   const bountyValue = 50000000000000000;
-  const oraclizeFee = web3.utils.toWei('0.0100355', 'ether');
+  const oraclizeFee = web3.toWei('0.0100355', 'ether');
   const oraclizeWaitTime = 25000;
   const bountyQuestionId = 3;
   const bountyDescription1 = 'This is the first bounty test string';
@@ -205,7 +209,6 @@ contract('SEBounty', (accounts) => {
 
       it("lets a user claim their bounty", async () => {
         tx = await bounty.claimBounty(0, {from: answerAccount1 });
-
         truffleAssert.eventEmitted(tx, 'BountyClaimed');
       });
     });
@@ -220,8 +223,11 @@ contract('SEBounty', (accounts) => {
       });
 
       it("checks that a user can cancel their bounty", async () => {
+        const balanceBefore = web3.eth.getBalance(bountyAccount2);
         tx = await bounty.cancelBounty(1, { from: bountyAccount2 });
+        const balanceAfter = web3.eth.getBalance(bountyAccount2);
 
+        assert(balanceAfter > balanceBefore);
         truffleAssert.eventEmitted(tx, 'BountyCancelled');
       });
 

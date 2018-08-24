@@ -96,6 +96,7 @@ class ExploreBounty extends Component {
 
   render() {
     const { Header, Row, HeaderCell, Body } = Table;
+
     return (
       <Layout>
         <Container>

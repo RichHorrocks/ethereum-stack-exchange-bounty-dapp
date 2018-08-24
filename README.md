@@ -12,7 +12,7 @@ This README covers the following topics:
 ## Dapp Overview
 
 This dapp provides a financial overlay to the Stack Exchange question and
-answer site. This can be used to compliment Stack Exchange's own bounty mechanism, in this case by paying ETH instead of reputation points.
+answer site. It can be used to compliment Stack Exchange's own bounty mechanism, in this case by paying ETH instead of reputation points.
 
 In short, the dapp allows users to:
  * Post bounties on existing Stack Exchange questions, regardless of who posted
@@ -38,19 +38,19 @@ The dapp has 5 main pages:
 
    This is simply a page introducing the site, with a background image served from IPFS.
 
- * **The Explore Bounties page**
+ * **The _Explore Bounties_ page**
 
    This page lists all currently open bounties, together with inactive entries for bounties that have already been fulfilled.
 
- * **The Post a Bounty page**
+ * **The _Post a Bounty_ page**
 
-   From here a user can create a new bounty. The page contains a set of instructions on how to go about this. The dapp uses Oraclize to query Stack Exchange for the validity of any question posted.
+   From here a user can create a new bounty. The page contains a set of instructions on how to go about this, but the instructions are also outlined below. The dapp uses Oraclize to query Stack Exchange for the validity of any question posted.
 
- * **The Dashboard page**
+ * **The _Dashboard_ page**
 
    This is a user's dashboard, where a user is identified by their Metamask account address. The page displays their currently open bounties, and any bounties they've posted an answer to.
 
- * **The Bounty page**
+ * **The _Bounty_ page**
 
    This page details a particular bounty, including any instructions written by the owner, together with any answers that have been posted in response.
 
@@ -189,9 +189,16 @@ In addition to reentrancy, the following are also mitigated against:
 ## Final Project Specification - The Rubric
 ### User Interface Requirements
 
+Though it's possible to run the dapp locally using Ganache, a better and more realistic experience can be had by using the version of the dapp deployed on Rinkeby - https://ethereum-bounty.herokuapp.com/.
+
+Ganache's "instantaneous" blocktimes, and the fact that it only mines blocks when transactions are made, means that certain aspects of the front end behave differently. Also note that this dapp uses Oraclize extensively, meaning to run the dapp locally requires that a bridge be set up between Ganache and Oraclize.
+
+Below are the (lengthy!) instructions to run the dapp on a local machine.
+
+
 * **Run app on a dev server locally for testing/grading**
 
-  First clone the repository:
+  First clone the project repository:
   ```
   git clone https://github.com/RichHorrocks/consensys-academy-project.git
   ```
@@ -201,16 +208,91 @@ In addition to reentrancy, the following are also mitigated against:
   npm install
   ```
 
-  With the dependencies installed, a local web server can be run using:
+  The code cloned from the repository in the first step points to the publicly deployed contract, which can be tested from the public URL (https://ethereum-bounty.herokuapp.com/). To run a _local_ instance, first ensure Ganache is running, then locally deploy the contracts using:
+  ```
+  truffle migrate
+  ```
+
+  Having done this, get the address of the locally deployed contract. For example:
+  ```
+  Using network 'development'.
+
+  Running migration: 1_initial_migration.js
+    Replacing Migrations...
+    ... 0xcc872be7b23bc80a63c2c5d5a6b287a1b2935d44a317d1a9c91e1de2fac009f5
+    Migrations: 0x81e70c96e6f28daa711f4f2e63f454d248afaba0
+  Saving successful migration to network...
+
+    ... 0x816ffedec8fe13e49e287892eeaf8c4e5446782d4175c8060343b7ff94f505a3
+  Saving artifacts...
+  Running migration: 2_deploy_contract.js
+    Replacing SEBounty...
+    ... 0x487d70c33d41494e5f1c7888dadf17c7d95ebd8ee7f76def2942c50ed953c87d
+    SEBounty: 0x5769e7de82ff4df2230cd41ac5bd80bdae347d74   <------------------- THIS ADDRESS
+  Saving successful migration to network...
+    ... 0xe6d22b31d9faf3607b0fc22e86b356d219963456ba0bfbf4beb67536b78a9d89
+  Saving artifacts...
+  ```
+
+  The deployed address can then be added to the following files:
+  * `contractInstance.js`
+  * `eventContractInstance.js`
+  ---
+  Next, a bridge between Oraclize and Ganache needs to be created.
+
+  The ```ethereum-bridge``` package is required to allow the testing of Oraclize-dependent code. When the contract calls ```oraclize_query()```, the bridge allows the test framework to connect to Oraclize to perform the query, and supply a route for Oraclize's callback.
+
+  Run the following to install the bridge. This can be run from anywhere: it doesn't need to be inside the main project.
+
+  ```
+  git clone https://github.com/oraclize/ethereum-bridge.git
+  cd ethereum-bridge
+  npm install
+  ```
+  Once ```ethereum-bridge``` is installed, it must be run in a separate terminal prior to the tests being run. From the install directory the following should be run, substituting the port to correspond to Ganache's port as necessary:
+  ```
+  ./ethereum-bridge -H localhost:7545 -a 9
+  ```
+
+  An an example of a successful bridge bring-up is shown below:
+  ```
+  $ ./ethereum-bridge -H localhost:7545 -a 9
+  Please wait...
+  [2018-08-21T19:35:25.711Z] INFO you are running ethereum-bridge - version: 0.6.1
+  [2018-08-21T19:35:25.711Z] INFO saving logs to: ./bridge.log
+  [2018-08-21T19:35:25.712Z] INFO using active mode
+  [2018-08-21T19:35:25.712Z] INFO Connecting to eth node http://localhost:7545
+  [2018-08-21T19:35:26.945Z] INFO connected to node type EthereumJS TestRPC/v2.1.5/ethereum-js
+  [2018-08-21T19:35:27.215Z] WARN Using 0xda565a9de768e183c2204c3aba7b549e53191ddf to query contracts on your blockchain, make sure it is unlocked and do not use the same address to deploy your contracts
+  [2018-08-21T19:35:27.278Z] INFO deploying the oraclize connector contract...
+  [2018-08-21T19:35:37.581Z] INFO connector deployed to: 0x6f8fe7bce48972ac12fb495a157fcaf00cbaf200
+  [2018-08-21T19:35:37.644Z] INFO deploying the address resolver with a deterministic address...
+  [2018-08-21T19:35:58.488Z] INFO address resolver (OAR) deployed to: 0x6f485c8bf6fc43ea212e93bbf8ce046c7f1cb475
+  [2018-08-21T19:35:58.488Z] INFO updating connector pricing...
+  [2018-08-21T19:36:09.151Z] INFO successfully deployed all contracts
+  [2018-08-21T19:36:09.153Z] INFO instance configuration file saved to /home/richard/Projects/consensys-academy-project/ethereum-bridge/config/instance/oracle_instance_20180821T203609.json
+
+  Please add this line to your contract constructor:
+
+  OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+
+  [2018-08-21T19:36:09.157Z] WARN re-org block listen is disabled while using TestRPC
+  [2018-08-21T19:36:09.157Z] WARN if you are running a test suit with Truffle and TestRPC or your chain is reset often please use the --dev mode
+  [2018-08-21T19:36:09.158Z] INFO Listening @ 0x6f8fe7bce48972ac12fb495a157fcaf00cbaf200 (Oraclize Connector)
+
+  (Ctrl+C to exit)
+  ```
+
+  With the dependencies installed and contracts deployed, a local web server can be run using:
   ```
   node server.js
   ```
 ---
 * **Should be able to visit a URL and interact with the app**
 
-  The local site created in the first step can be accessed at ```localhost:3000```.
+  The local site created in the first step can be accessed at ```localhost:3000```. Ensure that Metamask is pointing at the appropriate custom RPC point - e.g. `http://127.0.0.1:7545` (or whatever port your Ganache instance is exposing).
 
-  A public version of the site is hosted on Rinkeby at ...
+  A public version of the site is hosted on Rinkeby at https://ethereum-bounty.herokuapp.com/.
 
 ---
 * **The application should have the following features:**
@@ -308,7 +390,7 @@ In addition to reentrancy, the following are also mitigated against:
   truffle test
   ```
 
-  Note that during the tests there are 3 delays, equating to the times that the tests call Oraclize. These delays are commented in the tests, and should last for 25 seconds each.
+  Note that during the tests there are 3 delays, equating to the times that the tests call Oraclize. These delays are commented in the tests, and should last for 30 seconds each.
 
 ---
 ### Design Pattern Requirements

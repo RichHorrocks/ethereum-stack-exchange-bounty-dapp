@@ -14,17 +14,15 @@ import {
 } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import Head from '../../components/Head';
-import { Link, Router } from '../../routes';
+import { Router } from '../../routes';
 import axios from 'axios';
 import web3 from '../../getWeb3';
 import listenWeb3 from '../../listenWeb3';
 import bounty from '../../contractInstance';
+import bountyEvents from '../../eventContractInstance';
 import he from 'he';
-import Web3 from 'web3';
-import SEBounty from '../../build/contracts/SEBounty.json';
-import contract from 'truffle-contract';
 
-class BountySearch2 extends Component {
+class NewBounty extends Component {
   constructor() {
     super();
     this.oraclizeFee = "0.0100355";
@@ -109,6 +107,7 @@ class BountySearch2 extends Component {
           this.state.questionId,
           { from: this.state.userAccount,
             value: totalValue,
+            gas: 700000
           });
 
         /*
@@ -120,21 +119,7 @@ class BountySearch2 extends Component {
           'Checking with Stack Exchange. This could take up to 30 seconds...',
         });
 
-        /*
-         * This project is using web3@1.0.0.
-         * Metamask doesn't support events in web3@1.0.0, so we need to use
-         * a provider that does. Connect to Infura's websocket and listen for
-         * events there.
-         */
         if (this.state.networkId === 4) {
-          const web3Infura = new Web3(
-            new Web3.providers.WebsocketProvider(
-            'wss://rinkeby.infura.io/_ws'));
-
-          var bountyEvents = new web3Infura.eth.Contract(
-            SEBounty.abi,
-            '0x2b451aabc6bebd06f394987fc011ac502a393f70');
-
           bountyEvents.events.OraclizeQuerySuccess({
             fromBlock: 'latest',
           }, (err, result) => {
@@ -157,7 +142,7 @@ class BountySearch2 extends Component {
         } else {
           /*
            * Assume that if we're not running on Rinkeby, we're on Ganache.
-           * Wait 25 seconds for the Oraclize bridge to send the callback.
+           * Wait 30 seconds for the Oraclize bridge to send the callback.
            */
           await new Promise(r => setTimeout(() => r(), 30000));
           Router.pushRoute('/bounties/explore');
@@ -348,4 +333,4 @@ class BountySearch2 extends Component {
   }
 }
 
-export default BountySearch2;
+export default NewBounty;
