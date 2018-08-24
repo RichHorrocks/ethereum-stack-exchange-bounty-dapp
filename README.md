@@ -1,5 +1,8 @@
 # consensys-academy-project
 
+TL;DR: Dapp is deployed on Rinkeby at https://ethereum-bounty.herokuapp.com
+
+---
 This README covers the following topics:
  * [Dapp Overview](#dapp-overview)
  * [Dapp Instructions](#dapp-instructions)

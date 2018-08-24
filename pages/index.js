@@ -32,8 +32,6 @@ class App extends Component {
     // Get the network ID.
     const networkId = await web3.eth.net.getId();
     this.setState({ networkId });
-
-    //style={{ height: '100vh', backgroundImage: `url('https://gateway.ipfs.io/ipfs/QmNZnBRq6cXauYLYhTeJSRioJCdo3NpbmhnRcWXhLwNEzW')` }}
   }
 
   render() {
@@ -43,7 +41,8 @@ class App extends Component {
           vertical
           inverted
           textAlign='center'
-          style={{ height: '100vh'}}>
+          style={{ height: '100vh',
+                   backgroundImage: `url('https://gateway.ipfs.io/ipfs/QmQrDnZDPsj1iAyUoKrrUZWGnKwbonnJNc3Z4PznC6hmMk')` }}>
           <Grid
             textAlign='center'
             style={{ height: '100%' }}
@@ -57,7 +56,8 @@ class App extends Component {
                 Welcome to the Ethereum Stack Exchange Bounty homepage
               </Header>
               <p style={{ fontSize: '1.2em', lineHeight: 1.6 }}>
-                Place bounties on questions on Stack Exchange, or earn money by answering other people's questions.
+                Place bounties on questions on Stack Exchange,
+                or earn money by answering other people's questions.
               </p>
               <Link route="/bounties/new">
                 <a>

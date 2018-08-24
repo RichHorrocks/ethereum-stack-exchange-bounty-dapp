@@ -186,7 +186,7 @@ class NewBounty extends Component {
             userAccount={this.state.userAccount}
             networkId={this.state.networkId}
           />
-          <Dimmer.Dimmable active>
+          <Dimmer.Dimmable>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader
                 inverted

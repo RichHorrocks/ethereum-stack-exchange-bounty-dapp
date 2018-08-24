@@ -14,13 +14,6 @@ const web3Infura = new Web3(
 
 const SEBountyEventsContract = new web3Infura.eth.Contract(
   SEBounty.abi,
-  '0x23a9f2c849996bb5f601a2028d7feed4481382e5');
+  '0x673dbc9af7df9f5cdff18d96c464805b7a21e922');
 
 export default SEBountyEventsContract;
-
-
-// Deployed to Rinkeby, waiting for Oraclize callbacks...
-//0x673dbc9af7df9f5cdff18d96c464805b7a21e922
-
-// Old one... same problem
-// 0x7aa894e542d36d8c6245d97bfdcc840dfc0a3572

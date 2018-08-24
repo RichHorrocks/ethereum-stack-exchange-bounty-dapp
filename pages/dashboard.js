@@ -71,6 +71,7 @@ class Dashboard extends Component {
     for (var i = 0; i < bountyCount; i++) {
       if (bounties[i][3].toUpperCase() == accounts[0].toUpperCase()) {
         userBounties.push(JSON.parse(JSON.stringify(bounties[i])));
+console.log("FOUND BOUNTY");
       }
 
       const answers = await bounty.getAnswers.call(i);
@@ -206,7 +207,7 @@ class Dashboard extends Component {
             userAccount={this.state.userAccount}
             networkId={this.state.networkId}
           />
-          <Dimmer.Dimmable active>
+          <Dimmer.Dimmable>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>
             </Dimmer>
@@ -233,7 +234,7 @@ class Dashboard extends Component {
 
           Found {this.state.bountyCount} bounties.
           <Divider />
-          <Dimmer.Dimmable active>
+          <Dimmer.Dimmable>
             <Dimmer active={this.state.isLoading} inverted>
               <Loader inverted></Loader>
             </Dimmer>
