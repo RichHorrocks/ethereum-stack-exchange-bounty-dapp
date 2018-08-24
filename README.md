@@ -8,7 +8,7 @@ This README covers the following topics:
  * [Dapp Instructions](#dapp-instructions)
  * [Design Patterns](#design-patterns)
  * [Security and Common Attack Mitigation](#security-and-common-attack-mitigation)
- * [Final Project Specification - The Rubric](#final-project-specification)
+ * [Final Project Specification - The Rubric](#final-project-specification---the-rubric)
  * [Future Improvements](#future-improvements)
 
 ---
